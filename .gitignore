@@ -1,0 +1,14 @@
+.DS_Store
+.idea/
+.vscode/
+node_modules/
+dist/
+coverage/
+.vite/
+.npm-cache/
+.env
+.env.local
+.env.*.local
+*.local
+*.tsbuildinfo
+*.log

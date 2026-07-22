@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>物迹 - 连锁门店设备与维保平台</title>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f7;
+      --surface: #ffffff;
+      --surface-soft: #edf4f3;
+      --ink: #172b3a;
+      --muted: #697985;
+      --line: #dce4e7;
+      --teal: #0d7d78;
+      --teal-dark: #085e5a;
+      --amber: #c96d24;
+      --red: #b7443e;
+      --shadow: 0 10px 28px rgba(23, 43, 58, .08);
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 224px minmax(0, 1fr); }
+    .sidebar { background: #15313e; color: #e7f1f1; padding: 24px 16px; display: flex; flex-direction: column; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; background: #e6a64f; color: #15313e; border-radius: 7px; }
+    .brand strong { font-size: 18px; }
+    .brand small { display: block; color: #9fb5bc; margin-top: 2px; }
+    .nav { display: grid; gap: 6px; }
+    .nav button { width: 100%; border: 0; background: transparent; color: #b8c9ce; display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 7px; text-align: left; }
+    .nav button:hover, .nav button.active { background: #244854; color: #fff; }
+    .sidebar-foot { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid #31515b; color: #a8bbc1; font-size: 12px; line-height: 1.5; }
+    main { min-width: 0; padding: 24px 30px 40px; }
+    .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 26px; }
+    .topbar h1 { font-size: 24px; margin: 0; }
+    .topbar p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .search { position: relative; }
+    .search i { position: absolute; left: 11px; top: 10px; color: var(--muted); }
+    .search input { width: 240px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); padding: 9px 12px 9px 36px; color: var(--ink); outline: none; }
+    .search input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13, 125, 120, .12); }
+    .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); min-height: 38px; border-radius: 7px; padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:hover { border-color: #a7b8be; }
+    .btn.primary { border-color: var(--teal); background: var(--teal); color: #fff; }
+    .btn.primary:hover { background: var(--teal-dark); }
+    .icon-btn { width: 38px; padding: 0; }
+    [data-tooltip] { position: relative; }
+    [data-tooltip]:hover::after { content: attr(data-tooltip); position: absolute; right: 0; top: calc(100% + 7px); white-space: nowrap; background: #10232d; color: #fff; padding: 6px 8px; border-radius: 5px; font-size: 12px; z-index: 20; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .metric { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 17px; min-height: 116px; }
+    .metric-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+    .metric-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: var(--surface-soft); color: var(--teal); }
+    .metric strong { display: block; font-size: 27px; margin: 9px 0 2px; }
+    .metric small { color: var(--muted); }
+    .up { color: var(--teal-dark); }
+    .warn { color: var(--amber); }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr); gap: 18px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+    .panel + .panel { margin-top: 16px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .panel h2 { margin: 0; font-size: 16px; }
+    .link-btn { background: transparent; border: 0; color: var(--teal); padding: 4px; }
+    .asset-list { display: grid; gap: 4px; }
+    .asset-row { border: 0; width: 100%; background: transparent; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 7px; border-radius: 6px; text-align: left; color: inherit; }
+    .asset-row:hover { background: #f4f7f7; }
+    .asset-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 7px; background: #e5efef; color: var(--teal-dark); }
+    .asset-icon.amber { background: #f7eadb; color: var(--amber); }
+    .asset-icon.blue { background: #e7edf3; color: #385e78; }
+    .asset-name { font-weight: 600; }
+    .asset-meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .asset-value { font-weight: 600; text-align: right; }
+    .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 3px 7px; border-radius: 999px; background: #e7f2ef; color: var(--teal-dark); margin-top: 4px; }
+    .status.expiring { background: #fff0df; color: #9b521a; }
+    .bar-list { display: grid; gap: 13px; }
+    .bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+    .bar-track { height: 8px; border-radius: 4px; background: #e8edef; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--teal); border-radius: 4px; }
+    .bar-fill.amber { background: var(--amber); }
+    .bar-fill.navy { background: #375b6f; }
+    .notice { display: flex; gap: 10px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .notice:last-child { border-bottom: 0; }
+    .notice i { color: var(--amber); margin-top: 2px; }
+    .notice strong { display: block; font-size: 13px; }
+    .notice span { color: var(--muted); font-size: 12px; }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+    .section-head > .btn { flex: none; white-space: nowrap; }
+    .section-head h2 { margin: 0; font-size: 20px; }
+    .section-head p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+    .chip { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 7px 11px; }
+    .chip.active { border-color: var(--teal); background: var(--surface-soft); color: var(--teal-dark); }
+    .inventory { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .inventory-head, .inventory .asset-row { grid-template-columns: 44px minmax(180px, 1.4fr) minmax(130px, .7fr) minmax(100px, .5fr) minmax(110px, .5fr); }
+    .inventory-head { display: grid; gap: 12px; padding: 11px 14px; color: var(--muted); font-size: 12px; border-bottom: 1px solid var(--line); background: #f7f9f9; }
+    .inventory .asset-row { padding: 11px 14px; border-bottom: 1px solid #edf1f2; border-radius: 0; }
+    .inventory .asset-row:last-child { border-bottom: 0; }
+    .reminder-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
+    .reminder-item { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .reminder-item:last-child { border-bottom: 0; }
+    .date-box { text-align: center; background: #fff0df; color: #8c4a17; border-radius: 6px; padding: 6px 3px; }
+    .date-box strong { display: block; font-size: 17px; }
+    .date-box span { font-size: 10px; }
+    .switch { position: relative; width: 40px; height: 22px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: #cbd5d8; border-radius: 999px; transition: .2s; }
+    .slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+    .switch input:checked + .slider { background: var(--teal); }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+    .empty-note { text-align: center; color: var(--muted); padding: 26px 12px; }
+    dialog { border: 0; border-radius: 8px; padding: 0; width: min(560px, calc(100% - 28px)); box-shadow: var(--shadow); color: var(--ink); }
+    dialog::backdrop { background: rgba(11, 28, 37, .46); }
+    .dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; font-size: 18px; }
+    .dialog-body { padding: 18px 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 12px; color: var(--muted); }
+    .field input, .field select { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 10px; color: var(--ink); background: #fff; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 15px 20px; border-top: 1px solid var(--line); }
+    .drawer { position: fixed; top: 0; right: 0; width: min(420px, 100%); height: 100%; background: var(--surface); box-shadow: -16px 0 36px rgba(21, 49, 62, .15); z-index: 30; transform: translateX(105%); transition: transform .25s ease; overflow: auto; }
+    .drawer.open { transform: translateX(0); }
+    .drawer-hero { background: #e7efef; padding: 28px 22px; display: flex; align-items: center; justify-content: space-between; }
+    .drawer-hero .asset-icon { width: 62px; height: 62px; }
+    .drawer-content { padding: 20px 22px; }
+    .drawer-content h2 { margin: 0 0 5px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+    .detail { padding: 11px; background: #f5f7f7; border-radius: 6px; }
+    .detail span { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 50; background: #17313d; color: #fff; padding: 11px 15px; border-radius: 7px; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .mobile-nav { display: none; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 78px minmax(0, 1fr); }
+      .sidebar { padding: 20px 10px; }
+      .brand-text, .nav span, .sidebar-foot { display: none; }
+      .brand { justify-content: center; padding: 0; }
+      .nav button { justify-content: center; }
+      main { padding: 22px 20px 36px; }
+      .dashboard-grid, .reminder-grid { grid-template-columns: 1fr; }
+      .inventory-head { display: none; }
+      .inventory .asset-row { grid-template-columns: 44px minmax(0, 1fr) auto; }
+      .inventory .asset-row > :nth-child(3) { display: none; }
+      .inventory .asset-row > :nth-child(4) { display: none; }
+    }
+    @media (max-width: 680px) {
+      .app { display: block; }
+      .sidebar { display: none; }
+      main { padding: 18px 14px 88px; }
+      .topbar { align-items: flex-start; flex-wrap: wrap; margin-bottom: 20px; }
+      .topbar h1 { font-size: 21px; }
+      .top-actions { width: 100%; margin-left: 0; }
+      .search { flex: 1; }
+      .search input { width: 100%; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric:last-child { grid-column: 1 / -1; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .section-head { align-items: flex-start; }
+      .mobile-nav { position: fixed; z-index: 25; display: grid; grid-template-columns: repeat(4, 1fr); left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--line); padding: 8px 6px max(8px, env(safe-area-inset-bottom)); }
+      .mobile-nav button { border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; gap: 3px; font-size: 10px; }
+      .mobile-nav button.active { color: var(--teal); }
+      .asset-value { font-size: 13px; }
+    }
+
+    /* Product Design refresh: calm household operations, clear risk hierarchy. */
+    :root {
+      --bg: #f5f7f8;
+      --surface: #ffffff;
+      --surface-soft: #eaf0f5;
+      --ink: #1d2730;
+      --muted: #687681;
+      --line: #dde4ea;
+      --teal: #294e70;
+      --teal-dark: #1f3c57;
+      --amber: #d99532;
+      --red: #c4544d;
+      --shadow: 0 16px 44px rgba(31, 60, 87, .13);
+    }
+    body { background: var(--bg); }
+    .app { grid-template-columns: 208px minmax(0, 1fr); }
+    .sidebar { background: #213c54; padding: 30px 14px 22px; gap: 34px; border-right: 1px solid #2c4a63; }
+    .brand { padding: 0 10px; }
+    .brand-mark { width: 38px; height: 38px; background: #e1a849; color: #213c54; }
+    .brand strong { font-size: 20px; }
+    .brand small { color: #b4c4d0; }
+    .nav { gap: 5px; }
+    .nav button { min-height: 44px; padding: 11px 13px; color: #bfccd5; }
+    .nav button:hover { background: #31526d; }
+    .nav button.active { background: #f2f5f8; color: #213c54; font-weight: 700; }
+    .sidebar-foot { border-top-color: #3a566d; color: #aebdca; padding: 18px 10px 0; }
+    main { padding: 32px 40px 48px; }
+    .topbar { margin-bottom: 30px; }
+    .topbar h1 { font-size: 27px; line-height: 1.2; }
+    .topbar p { margin-top: 7px; }
+    .top-actions { gap: 8px; }
+    .search input { width: 268px; min-height: 42px; border-color: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+    .btn { min-height: 42px; border-color: var(--line); font-weight: 600; }
+    .btn.primary { box-shadow: 0 5px 14px rgba(41, 78, 112, .2); }
+    .icon-btn { width: 42px; }
+    .metrics { grid-template-columns: 1fr 1.25fr .9fr; gap: 12px; margin-bottom: 20px; }
+    .metric { min-height: 132px; padding: 20px; border-color: var(--line); }
+    .metric strong { font-size: 30px; margin-top: 13px; }
+    .metric:nth-child(2) { background: #294e70; border-color: #294e70; color: #fff; }
+    .metric:nth-child(2) .metric-head, .metric:nth-child(2) small { color: #d3dee7; }
+    .metric:nth-child(2) .metric-icon { background: #3b6384; color: #f0be62; }
+    .metric:nth-child(3) { border-left: 4px solid #d99532; }
+    .metric:nth-child(3) .warn { color: #a66317; }
+    .dashboard-grid { grid-template-columns: minmax(0, 1.55fr) minmax(292px, .72fr); gap: 16px; }
+    .panel { border-color: var(--line); padding: 20px; }
+    .panel-head { margin-bottom: 16px; }
+    .panel h2 { font-size: 17px; }
+    .asset-list { gap: 2px; }
+    .asset-row { min-height: 66px; padding: 10px 8px; }
+    .asset-row:hover { background: #f0f4f7; }
+    .asset-icon { background: #e8f0f6; color: var(--teal-dark); }
+    .asset-icon.blue { background: #e8eef4; color: #416079; }
+    .asset-icon.amber { background: #f7ecdf; color: #a76328; }
+    .asset-name { font-size: 14px; }
+    .status { background: #e6f2ec; color: #17644f; }
+    .status.expiring { background: #faeadb; color: #975619; }
+    .bar-track { background: #e8edeb; }
+    .notice { padding: 14px 0; }
+    .notice i { color: #a86027; }
+    .section-head { margin-bottom: 20px; }
+    .section-head h2 { font-size: 22px; }
+    .chip { min-height: 36px; border-radius: 7px; padding: 7px 13px; }
+    .chip.active { background: #294e70; border-color: #294e70; color: #fff; }
+    .inventory { border-color: var(--line); }
+    .inventory-head { background: #eef3f7; color: #5c6d7a; padding-top: 13px; padding-bottom: 13px; }
+    .inventory .asset-row { min-height: 70px; }
+    .reminder-item { min-height: 74px; }
+    .date-box { background: #f8e9d8; }
+    dialog { box-shadow: var(--shadow); }
+    .drawer { box-shadow: -20px 0 52px rgba(31, 60, 87, .17); }
+    .drawer-hero { background: #e8eff5; min-height: 132px; }
+    .detail { background: #f0f4f7; }
+    .workorder-list { border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden; }
+    .workorder-head, .workorder-row { display: grid; grid-template-columns: minmax(210px, 1.4fr) minmax(130px, .7fr) minmax(120px, .65fr) minmax(95px, .5fr) minmax(88px, .45fr); gap: 14px; align-items: center; }
+    .workorder-head { padding: 13px 16px; background: #eef3f7; color: var(--muted); font-size: 12px; }
+    .workorder-row { width: 100%; min-height: 72px; padding: 13px 16px; border: 0; border-top: 1px solid #edf1f4; background: #fff; color: inherit; text-align: left; }
+    .workorder-row:hover { background: #f5f8fa; }
+    .workorder-title { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .workorder-title .asset-icon { width: 38px; height: 38px; flex: none; }
+    .status.processing { background: #e9eef8; color: #345c86; }
+    .status.urgent { background: #fae9e7; color: #a74640; }
+    .status.closed { background: #e6f2ec; color: #17644f; }
+    .store-note { color: var(--muted); font-size: 12px; line-height: 1.55; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 72px minmax(0, 1fr); }
+      main { padding: 28px 24px 40px; }
+      .dashboard-grid, .reminder-grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric:nth-child(2) { grid-column: auto; }
+      .metric:nth-child(3) { grid-column: 1 / -1; }
+      .workorder-head { display: none; }
+      .workorder-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+      .workorder-row > :nth-child(2), .workorder-row > :nth-child(3) { grid-column: 1; padding-left: 49px; }
+      .workorder-row > :nth-child(4) { grid-column: 2; grid-row: 1; }
+      .workorder-row > :nth-child(5) { grid-column: 2; grid-row: 2 / span 2; }
+    }
+    @media (max-width: 680px) {
+      main { padding: 22px 16px 92px; }
+      .topbar { margin-bottom: 24px; }
+      .topbar h1 { font-size: 24px; }
+      .top-actions { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 7px; }
+      .top-actions .btn.primary { grid-column: 1 / -1; width: 100%; }
+      .search input { min-height: 42px; }
+      .metrics { gap: 10px; }
+      .metric { min-height: 126px; padding: 17px; }
+      .metric strong { font-size: 27px; }
+      .metric:nth-child(3) { min-height: 112px; }
+      .dashboard-grid { gap: 14px; }
+      .panel { padding: 17px; }
+      .mobile-nav { padding-top: 9px; background: rgba(255,255,255,.98); }
+      .mobile-nav { grid-template-columns: repeat(5, 1fr); }
+      .mobile-nav button { min-height: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><i data-lucide="package-check" aria-hidden="true"></i></div>
+        <div class="brand-text"><strong>物迹</strong><small>门店设备与维保</small></div>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <button class="active" data-view-target="dashboard"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>经营概览</span></button>
+        <button data-view-target="assets"><i data-lucide="refrigerator" aria-hidden="true"></i><span>设备台账</span></button>
+        <button data-view-target="reminders"><i data-lucide="clipboard-check" aria-hidden="true"></i><span>巡检维保</span></button>
+        <button data-view-target="workorders"><i data-lucide="wrench" aria-hidden="true"></i><span>维修工单</span></button>
+        <button data-view-target="analytics"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>经营分析</span></button>
+      </nav>
+      <div class="sidebar-foot">4 家门店 · 286 台设备<br>数据已于 10:28 同步</div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div><h1 id="pageTitle">门店设备概览</h1><p id="pageSubtitle">2026年7月22日 · 8 项异常待处理</p></div>
+        <div class="top-actions">
+          <label class="search"><i data-lucide="search" aria-hidden="true"></i><input id="searchInput" type="search" placeholder="搜索设备、资产编码"></label>
+          <button class="btn icon-btn" data-tooltip="通知" aria-label="通知"><i data-lucide="bell" aria-hidden="true"></i></button>
+          <button class="btn primary" id="openAdd"><i data-lucide="scan-line" aria-hidden="true"></i>设备建档</button>
+        </div>
+      </header>
+
+      <section class="view active" id="dashboard">
+        <div class="metrics">
+          <article class="metric"><div class="metric-head"><span>在用设备</span><span class="metric-icon"><i data-lucide="refrigerator" aria-hidden="true"></i></span></div><strong id="assetCount">286</strong><small class="up">4 家门店 · 在线率 97%</small></article>
+          <article class="metric"><div class="metric-head"><span>本月维保成本</span><span class="metric-icon"><i data-lucide="badge-dollar-sign" aria-hidden="true"></i></span></div><strong>¥12,680</strong><small>较上月下降 8.4%</small></article>
+          <article class="metric"><div class="metric-head"><span>异常待处理</span><span class="metric-icon"><i data-lucide="triangle-alert" aria-hidden="true"></i></span></div><strong class="warn">8</strong><small>2 项已超过 SLA</small></article>
+        </div>
+        <div class="dashboard-grid">
+          <div>
+            <section class="panel">
+              <div class="panel-head"><h2>异常设备</h2><button class="link-btn" data-jump="workorders">查看工单</button></div>
+              <div class="asset-list" id="recentAssets">
+                <button class="asset-row" data-asset="商用四门冷柜"><span class="asset-icon blue"><i data-lucide="refrigerator" aria-hidden="true"></i></span><span><span class="asset-name">商用四门冷柜</span><span class="asset-meta">朝阳店 · 后厨冷菜间 · EQ-CY-0048</span></span><span class="asset-value">温度异常<span class="status urgent">紧急</span></span></button>
+                <button class="asset-row" data-asset="商用制冰机"><span class="asset-icon"><i data-lucide="snowflake" aria-hidden="true"></i></span><span><span class="asset-name">商用制冰机</span><span class="asset-meta">海淀店 · 水吧 · EQ-HD-0021</span></span><span class="asset-value">保养逾期<span class="status expiring">逾期 3 天</span></span></button>
+                <button class="asset-row" data-asset="收银一体机"><span class="asset-icon amber"><i data-lucide="monitor-smartphone" aria-hidden="true"></i></span><span><span class="asset-name">收银一体机</span><span class="asset-meta">望京店 · 前厅收银台 · EQ-WJ-0012</span></span><span class="asset-value">网络离线<span class="status processing">处理中</span></span></button>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><h2>门店设备健康度</h2><span class="asset-meta">按正常设备占比</span></div>
+              <div class="bar-list">
+                <div><div class="bar-label"><span>朝阳店</span><strong>96%</strong></div><div class="bar-track"><div class="bar-fill" style="width: 96%"></div></div></div>
+                <div><div class="bar-label"><span>海淀店</span><strong>91%</strong></div><div class="bar-track"><div class="bar-fill amber" style="width: 91%"></div></div></div>
+                <div><div class="bar-label"><span>望京店</span><strong>94%</strong></div><div class="bar-track"><div class="bar-fill navy" style="width: 94%"></div></div></div>
+              </div>
+            </section>
+          </div>
+          <aside class="panel">
+            <div class="panel-head"><h2>今日待办</h2><button class="link-btn" data-jump="reminders">巡检计划</button></div>
+            <div class="notice"><i data-lucide="circle-alert" aria-hidden="true"></i><div><strong>2 张维修工单已超时</strong><span>朝阳店冷柜、望京店收银机</span></div></div>
+            <div class="notice"><i data-lucide="clipboard-check" aria-hidden="true"></i><div><strong>后厨开店巡检待完成</strong><span>3 家门店 · 截止 11:00</span></div></div>
+            <div class="notice"><i data-lucide="calendar-clock" aria-hidden="true"></i><div><strong>5 台设备本周需保养</strong><span>制冰机、油烟净化器等</span></div></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="assets">
+        <div class="section-head"><div><h2>设备台账</h2><p>统一管理设备编码、所属门店、责任人与维保状态</p></div><button class="btn" id="exportBtn"><i data-lucide="download" aria-hidden="true"></i>导出台账</button></div>
+        <div class="filters" id="categoryFilters"><button class="chip active" data-category="全部">全部 286</button><button class="chip" data-category="制冷">制冷 68</button><button class="chip" data-category="后厨">后厨 94</button><button class="chip" data-category="前厅">前厅 76</button><button class="chip" data-category="安防">安防 48</button></div>
+        <div class="inventory">
+          <div class="inventory-head"><span></span><span>设备</span><span>门店/位置</span><span>运行状态</span><span>设备原值</span></div>
+          <div id="inventoryRows">
+            <button class="asset-row" data-category="制冷" data-asset="商用四门冷柜"><span class="asset-icon blue"><i data-lucide="refrigerator" aria-hidden="true"></i></span><span><span class="asset-name">商用四门冷柜</span><span class="asset-meta">EQ-CY-0048 · 负责人 王伟</span></span><span class="asset-meta">朝阳店 · 后厨冷菜间</span><span class="status urgent">温度异常</span><span class="asset-value">¥18,600</span></button>
+            <button class="asset-row" data-category="制冷" data-asset="商用制冰机"><span class="asset-icon"><i data-lucide="snowflake" aria-hidden="true"></i></span><span><span class="asset-name">商用制冰机</span><span class="asset-meta">EQ-HD-0021 · 负责人 李娜</span></span><span class="asset-meta">海淀店 · 水吧</span><span class="status expiring">保养逾期</span><span class="asset-value">¥8,900</span></button>
+            <button class="asset-row" data-category="前厅" data-asset="收银一体机"><span class="asset-icon amber"><i data-lucide="monitor-smartphone" aria-hidden="true"></i></span><span><span class="asset-name">收银一体机</span><span class="asset-meta">EQ-WJ-0012 · 负责人 陈晨</span></span><span class="asset-meta">望京店 · 前厅收银台</span><span class="status processing">维修中</span><span class="asset-value">¥6,480</span></button>
+            <button class="asset-row" data-category="后厨" data-asset="商用蒸烤箱"><span class="asset-icon"><i data-lucide="microwave" aria-hidden="true"></i></span><span><span class="asset-name">商用蒸烤箱</span><span class="asset-meta">EQ-CY-0031 · 负责人 周强</span></span><span class="asset-meta">朝阳店 · 热厨区</span><span class="status">运行正常</span><span class="asset-value">¥32,800</span></button>
+            <button class="asset-row" data-category="安防" data-asset="后厨燃气报警器"><span class="asset-icon blue"><i data-lucide="siren" aria-hidden="true"></i></span><span><span class="asset-name">后厨燃气报警器</span><span class="asset-meta">EQ-SL-0009 · 负责人 刘敏</span></span><span class="asset-meta">双井店 · 后厨</span><span class="status">运行正常</span><span class="asset-value">¥1,260</span></button>
+          </div>
+          <div class="empty-note" id="emptyAssets" hidden>没有符合条件的资产</div>
+        </div>
+      </section>
+
+      <section class="view" id="reminders">
+        <div class="section-head"><div><h2>巡检维保</h2><p>按门店执行日常巡检与设备周期保养</p></div><button class="btn"><i data-lucide="calendar-plus" aria-hidden="true"></i>新建计划</button></div>
+        <div class="reminder-grid">
+          <section class="panel">
+            <div class="panel-head"><h2>今日计划</h2><span class="asset-meta">完成 7 / 12 项</span></div>
+            <div class="reminder-item"><div class="date-box"><strong>11</strong><span>点前</span></div><div><strong>朝阳店后厨开店巡检</strong><div class="asset-meta">8 个检查项 · 执行人 王伟</div></div><label class="switch" aria-label="启用巡检计划"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="reminder-item"><div class="date-box"><strong>15</strong><span>点前</span></div><div><strong>海淀店制冷设备点检</strong><div class="asset-meta">6 台设备 · 执行人 李娜</div></div><label class="switch" aria-label="启用巡检计划"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="reminder-item"><div class="date-box"><strong>18</strong><span>点前</span></div><div><strong>双井店闭店安全巡检</strong><div class="asset-meta">10 个检查项 · 待分配</div></div><label class="switch" aria-label="启用巡检计划"><input type="checkbox"><span class="slider"></span></label></div>
+          </section>
+          <aside class="panel"><div class="panel-head"><h2>本周保养</h2></div><div class="notice"><i data-lucide="snowflake" aria-hidden="true"></i><div><strong>制冰机清洁除垢</strong><span>海淀店 · 已逾期 3 天</span></div></div><div class="notice"><i data-lucide="fan" aria-hidden="true"></i><div><strong>油烟净化器滤芯维护</strong><span>朝阳店 · 7月24日</span></div></div><div class="notice"><i data-lucide="shield-check" aria-hidden="true"></i><div><strong>燃气报警器测试</strong><span>双井店 · 7月26日</span></div></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="workorders">
+        <div class="section-head"><div><h2>工单队列</h2><p>跟踪故障上报、维修响应、费用与验收结果</p></div><button class="btn primary" id="newWorkOrder"><i data-lucide="plus" aria-hidden="true"></i>创建工单</button></div>
+        <div class="metrics"><article class="metric"><div class="metric-head"><span>待响应</span><span class="metric-icon"><i data-lucide="inbox" aria-hidden="true"></i></span></div><strong>8</strong><small>2 项已超过 SLA</small></article><article class="metric"><div class="metric-head"><span>处理中</span><span class="metric-icon"><i data-lucide="wrench" aria-hidden="true"></i></span></div><strong>5</strong><small>平均响应 18 分钟</small></article><article class="metric"><div class="metric-head"><span>本月完成</span><span class="metric-icon"><i data-lucide="circle-check-big" aria-hidden="true"></i></span></div><strong>23</strong><small>一次修复率 87%</small></article></div>
+        <div class="workorder-list"><div class="workorder-head"><span>工单/设备</span><span>门店</span><span>负责人</span><span>状态</span><span>更新时间</span></div><button class="workorder-row" data-order="WO-20260722-018"><span class="workorder-title"><span class="asset-icon amber"><i data-lucide="refrigerator"></i></span><span><strong>冷柜温度持续偏高</strong><span class="asset-meta">WO-20260722-018 · 商用四门冷柜</span></span></span><span class="store-note">朝阳店<br>后厨冷菜间</span><span class="store-note">王伟<br>设备主管</span><span class="status urgent">已超时</span><span class="store-note">10:16</span></button><button class="workorder-row" data-order="WO-20260722-015"><span class="workorder-title"><span class="asset-icon blue"><i data-lucide="monitor-smartphone"></i></span><span><strong>收银机无法联网</strong><span class="asset-meta">WO-20260722-015 · 收银一体机</span></span></span><span class="store-note">望京店<br>前厅收银台</span><span class="store-note">陈晨<br>店长</span><span class="status processing">处理中</span><span class="store-note">09:48</span></button><button class="workorder-row" data-order="WO-20260721-042"><span class="workorder-title"><span class="asset-icon"><i data-lucide="snowflake"></i></span><span><strong>制冰速度明显下降</strong><span class="asset-meta">WO-20260721-042 · 商用制冰机</span></span></span><span class="store-note">海淀店<br>水吧</span><span class="store-note">外协工程师<br>赵师傅</span><span class="status closed">待验收</span><span class="store-note">昨天 18:35</span></button></div>
+      </section>
+
+      <section class="view" id="analytics">
+        <div class="section-head"><div><h2>经营分析</h2><p>分析门店设备健康度、故障率与维保投入</p></div><select class="btn" aria-label="统计周期"><option>近 6 个月</option><option>本年度</option></select></div>
+        <div class="metrics"><article class="metric"><div class="metric-head"><span>设备健康度</span><span class="metric-icon"><i data-lucide="heart-pulse" aria-hidden="true"></i></span></div><strong>93.6%</strong><small>较上月提升 1.8%</small></article><article class="metric"><div class="metric-head"><span>维保投入</span><span class="metric-icon"><i data-lucide="badge-dollar-sign" aria-hidden="true"></i></span></div><strong>¥68,420</strong><small>占设备原值 3.2%</small></article><article class="metric"><div class="metric-head"><span>平均停机</span><span class="metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span></div><strong>2.4 h</strong><small>较上月缩短 32 分钟</small></article></div>
+        <section class="panel"><div class="panel-head"><h2>近 6 个月维保支出</h2><span class="asset-meta">单位：元</span></div><div class="bar-list"><div><div class="bar-label"><span>2月</span><strong>8,260</strong></div><div class="bar-track"><div class="bar-fill navy" style="width:52%"></div></div></div><div><div class="bar-label"><span>3月</span><strong>10,480</strong></div><div class="bar-track"><div class="bar-fill" style="width:66%"></div></div></div><div><div class="bar-label"><span>4月</span><strong>14,920</strong></div><div class="bar-track"><div class="bar-fill amber" style="width:94%"></div></div></div><div><div class="bar-label"><span>5月</span><strong>9,750</strong></div><div class="bar-track"><div class="bar-fill" style="width:61%"></div></div></div><div><div class="bar-label"><span>6月</span><strong>12,340</strong></div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div></div><div><div class="bar-label"><span>7月</span><strong>12,680</strong></div><div class="bar-track"><div class="bar-fill navy" style="width:80%"></div></div></div></div></section>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="移动端导航"><button class="active" data-view-target="dashboard"><i data-lucide="layout-dashboard"></i><span>概览</span></button><button data-view-target="assets"><i data-lucide="refrigerator"></i><span>设备</span></button><button data-view-target="reminders"><i data-lucide="clipboard-check"></i><span>巡检</span></button><button data-view-target="workorders"><i data-lucide="wrench"></i><span>工单</span></button><button data-view-target="analytics"><i data-lucide="chart-no-axes-combined"></i><span>分析</span></button></nav>
+
+  <dialog id="addDialog">
+    <form method="dialog" id="assetForm">
+      <div class="dialog-head"><h2>设备建档</h2><button class="btn icon-btn" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="dialog-body"><div class="form-grid"><div class="field full"><label for="assetName">设备名称</label><input id="assetName" required placeholder="例如：商用双门冷柜"></div><div class="field"><label for="assetCategory">设备分类</label><select id="assetCategory"><option>制冷</option><option>后厨</option><option>前厅</option><option>安防</option></select></div><div class="field"><label for="assetRoom">所属门店</label><select id="assetRoom"><option>朝阳店</option><option>海淀店</option><option>望京店</option><option>双井店</option></select></div><div class="field"><label for="assetCode">资产编码</label><input id="assetCode" placeholder="例如：EQ-CY-0052"></div><div class="field"><label for="assetPrice">设备原值</label><input id="assetPrice" type="number" min="0" placeholder="0.00"></div><div class="field"><label for="assetDate">购置日期</label><input id="assetDate" type="date" value="2026-07-22"></div><div class="field"><label for="warrantyMonths">保修期</label><select id="warrantyMonths"><option value="12">12 个月</option><option value="24">24 个月</option><option value="36">36 个月</option><option value="0">无保修</option></select></div><div class="field"><label for="assetOwner">设备负责人</label><input id="assetOwner" placeholder="姓名或员工编号"></div></div></div>
+      <div class="dialog-actions"><button class="btn" value="cancel">取消</button><button class="btn primary" id="saveAsset" value="default">完成建档</button></div>
+    </form>
+  </dialog>
+
+  <aside class="drawer" id="detailDrawer" aria-label="设备详情" aria-hidden="true">
+    <div class="drawer-hero"><span class="asset-icon blue"><i data-lucide="refrigerator"></i></span><button class="btn icon-btn" id="closeDrawer" aria-label="关闭详情"><i data-lucide="x"></i></button></div>
+    <div class="drawer-content"><div class="status urgent">异常待处理</div><h2 id="drawerTitle">商用四门冷柜</h2><div class="asset-meta">朝阳店 · 后厨冷菜间 · 负责人 王伟</div><div class="detail-grid"><div class="detail"><span>资产编码</span><strong>EQ-CY-0048</strong></div><div class="detail"><span>设备原值</span><strong>¥18,600</strong></div><div class="detail"><span>下次保养</span><strong>2026.08.05</strong></div><div class="detail"><span>累计维保</span><strong>¥2,460</strong></div></div><div class="panel-head"><h2>最近动态</h2></div><div class="notice"><i data-lucide="triangle-alert"></i><div><strong>冷藏温度持续偏高</strong><span>今天 10:02 · 已自动创建工单</span></div></div><div class="notice"><i data-lucide="clipboard-check"></i><div><strong>开店巡检已完成</strong><span>今天 08:43 · 王伟</span></div></div><div class="dialog-actions" style="padding-left:0;padding-right:0"><button class="btn"><i data-lucide="pencil"></i>编辑设备</button><button class="btn primary" id="drawerWorkOrder"><i data-lucide="wrench"></i>创建工单</button></div></div>
+  </aside>
+  <div class="toast" id="toast" role="status">操作已完成</div>
+
+  <script>
+    (function () {
+      var titles = {
+        dashboard: ['门店设备概览', '2026年7月22日 · 8 项异常待处理'],
+        assets: ['设备台账', '统一管理设备、门店、责任人与维保状态'],
+        reminders: ['巡检维保', '执行日常巡检与周期保养计划'],
+        workorders: ['维修工单', '跟踪故障响应、维修进度与验收结果'],
+        analytics: ['经营分析', '查看设备健康度、故障率与维保投入']
+      };
+      var currentCategory = '全部';
+      var navButtons = document.querySelectorAll('[data-view-target]');
+      var views = document.querySelectorAll('.view');
+      var searchInput = document.getElementById('searchInput');
+      var dialog = document.getElementById('addDialog');
+      var toast = document.getElementById('toast');
+      var drawer = document.getElementById('detailDrawer');
+
+      function refreshIcons() { if (window.lucide) window.lucide.createIcons({ attrs: { width: 18, height: 18, 'stroke-width': 1.8 } }); }
+      function showToast(message) { toast.textContent = message; toast.classList.add('show'); window.setTimeout(function () { toast.classList.remove('show'); }, 1800); }
+      function setView(id) {
+        views.forEach(function (view) { view.classList.toggle('active', view.id === id); });
+        navButtons.forEach(function (button) { button.classList.toggle('active', button.getAttribute('data-view-target') === id); });
+        document.getElementById('pageTitle').textContent = titles[id][0];
+        document.getElementById('pageSubtitle').textContent = titles[id][1];
+        document.getElementById('openAdd').hidden = id === 'workorders';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      navButtons.forEach(function (button) { button.addEventListener('click', function () { setView(button.getAttribute('data-view-target')); }); });
+      document.querySelectorAll('[data-jump]').forEach(function (button) { button.addEventListener('click', function () { setView(button.getAttribute('data-jump')); }); });
+      document.getElementById('openAdd').addEventListener('click', function () { dialog.showModal(); });
+      document.getElementById('saveAsset').addEventListener('click', function (event) {
+        event.preventDefault();
+        var name = document.getElementById('assetName').value.trim();
+        if (!name) { document.getElementById('assetName').focus(); return; }
+        var row = document.createElement('button');
+        var category = document.getElementById('assetCategory').value;
+        var code = document.getElementById('assetCode').value.trim() || '待生成编码';
+        var owner = document.getElementById('assetOwner').value.trim() || '待分配';
+        row.className = 'asset-row'; row.setAttribute('data-category', category); row.setAttribute('data-asset', name);
+        row.innerHTML = '<span class="asset-icon"><i data-lucide="refrigerator"></i></span><span><span class="asset-name"></span><span class="asset-meta">' + code + ' · 负责人 ' + owner + '</span></span><span class="asset-meta">' + document.getElementById('assetRoom').value + ' · ' + category + '</span><span class="status">运行正常</span><span class="asset-value">¥' + (document.getElementById('assetPrice').value || '0') + '</span>';
+        row.querySelector('.asset-name').textContent = name;
+        document.getElementById('inventoryRows').prepend(row);
+        bindAssetRows();
+        document.getElementById('assetCount').textContent = '287';
+        document.getElementById('assetForm').reset();
+        dialog.close();
+        showToast('设备已完成建档'); refreshIcons();
+      });
+      function filterAssets() {
+        var query = searchInput.value.trim().toLowerCase(); var visible = 0;
+        document.querySelectorAll('#inventoryRows .asset-row').forEach(function (row) {
+          var matchesCategory = currentCategory === '全部' || row.getAttribute('data-category') === currentCategory;
+          var matchesQuery = !query || row.textContent.toLowerCase().indexOf(query) >= 0;
+          row.hidden = !(matchesCategory && matchesQuery); if (!row.hidden) visible += 1;
+        });
+        document.getElementById('emptyAssets').hidden = visible > 0;
+        if (query && !document.getElementById('assets').classList.contains('active')) setView('assets');
+      }
+      searchInput.addEventListener('input', filterAssets);
+      document.querySelectorAll('#categoryFilters .chip').forEach(function (chip) { chip.addEventListener('click', function () { currentCategory = chip.getAttribute('data-category'); document.querySelectorAll('#categoryFilters .chip').forEach(function (item) { item.classList.toggle('active', item === chip); }); filterAssets(); }); });
+      function bindAssetRows() { document.querySelectorAll('[data-asset]').forEach(function (row) { row.onclick = function () { document.getElementById('drawerTitle').textContent = row.getAttribute('data-asset'); drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); }; }); }
+      bindAssetRows();
+      document.getElementById('closeDrawer').addEventListener('click', function () { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); });
+      document.getElementById('exportBtn').addEventListener('click', function () { showToast('设备台账已生成'); });
+      document.getElementById('newWorkOrder').addEventListener('click', function () { showToast('工单创建表单已打开'); });
+      document.getElementById('drawerWorkOrder').addEventListener('click', function () { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); setView('workorders'); showToast('已带入设备信息创建工单'); });
+      document.querySelectorAll('[data-order]').forEach(function (row) { row.addEventListener('click', function () { showToast('已打开工单 ' + row.getAttribute('data-order')); }); });
+      refreshIcons();
+    }());
+  </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>时序 - 学习计划与专注助手</title>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f6f4; --surface: #fff; --soft: #eef3ed; --ink: #202722; --muted: #6f786f;
+      --line: #dfe5df; --green: #397254; --green-dark: #28543d; --yellow: #d7a23a;
+      --blue: #4d6d91; --red: #b34d47; --radius: 8px; --shadow: 0 12px 32px rgba(35, 48, 38, .1);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr); }
+    .sidebar { padding: 24px 16px; background: #26362e; color: #edf4ef; display: flex; flex-direction: column; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 7px; background: #e3bd5a; color: #26362e; display: grid; place-items: center; }
+    .brand strong { font-size: 18px; } .brand small { display: block; color: #aebdb4; margin-top: 2px; }
+    .nav { display: grid; gap: 6px; }
+    .nav button { width: 100%; border: 0; border-radius: 7px; padding: 11px 12px; color: #becac2; background: transparent; display: flex; align-items: center; gap: 11px; text-align: left; }
+    .nav button:hover, .nav button.active { color: #fff; background: #3a5044; }
+    .weekly { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid #405248; font-size: 12px; color: #b6c3bb; }
+    .weekly strong { color: #fff; display: block; font-size: 20px; margin: 5px 0; }
+    .progress { height: 6px; background: #52645a; border-radius: 3px; overflow: hidden; }
+    .progress span { display: block; height: 100%; width: 68%; background: #e3bd5a; }
+    main { min-width: 0; padding: 24px 30px 42px; }
+    .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+    .topbar h1 { margin: 0; font-size: 24px; } .topbar p { color: var(--muted); margin: 4px 0 0; font-size: 13px; }
+    .top-actions { display: flex; gap: 9px; margin-left: auto; }
+    .btn { min-height: 38px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:hover { border-color: #aeb9b0; } .btn.primary { color: #fff; border-color: var(--green); background: var(--green); } .btn.primary:hover { background: var(--green-dark); }
+    .icon-btn { width: 38px; padding: 0; } .view { display: none; } .view.active { display: block; }
+    .date-strip { display: grid; grid-template-columns: repeat(7, minmax(62px, 1fr)); gap: 8px; margin-bottom: 18px; }
+    .date-btn { min-height: 68px; border: 1px solid var(--line); background: var(--surface); border-radius: 7px; color: var(--muted); display: grid; place-items: center; align-content: center; gap: 4px; }
+    .date-btn strong { font-size: 18px; color: var(--ink); } .date-btn.active { border-color: var(--green); background: var(--soft); color: var(--green); } .date-btn.active strong { color: var(--green-dark); }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .metric { min-height: 108px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px; }
+    .metric-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+    .metric-icon { width: 30px; height: 30px; border-radius: 6px; background: var(--soft); color: var(--green); display: grid; place-items: center; }
+    .metric strong { display: block; font-size: 26px; margin: 7px 0 2px; } .metric small { color: var(--muted); }
+    .today-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(290px, .75fr); gap: 18px; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 18px; }
+    .panel + .panel { margin-top: 16px; } .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 13px; }
+    .panel h2 { margin: 0; font-size: 16px; } .muted { color: var(--muted); font-size: 12px; }
+    .task-list { display: grid; gap: 6px; }
+    .task { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 26px; align-items: center; gap: 10px; padding: 11px 8px; border-radius: 6px; border: 1px solid transparent; }
+    .task:hover { background: #f7f9f6; border-color: #edf0ed; } .task.dragging { opacity: .45; }
+    .task input { width: 18px; height: 18px; accent-color: var(--green); }
+    .task-title { font-weight: 600; font-size: 14px; } .task.done .task-title { text-decoration: line-through; color: var(--muted); }
+    .task-meta { margin-top: 4px; color: var(--muted); font-size: 12px; display: flex; gap: 9px; flex-wrap: wrap; }
+    .tag { color: var(--green-dark); background: var(--soft); border-radius: 999px; padding: 3px 7px; font-size: 11px; white-space: nowrap; }
+    .tag.blue { color: #405d7e; background: #ebf0f5; } .tag.yellow { color: #8b631a; background: #fbf2dc; }
+    .drag { color: #a7afa8; cursor: grab; display: grid; place-items: center; border: 0; background: transparent; padding: 3px; }
+    .next-block { display: flex; gap: 12px; align-items: center; padding: 13px; background: var(--soft); border-radius: 7px; }
+    .next-time { width: 52px; flex: none; text-align: center; color: var(--green-dark); font-weight: 700; }
+    .focus-card { text-align: center; padding: 22px 16px; }
+    .timer-ring { width: 174px; height: 174px; margin: 10px auto 18px; border: 10px solid #dfe7e0; border-top-color: var(--green); border-right-color: var(--green); border-radius: 50%; display: grid; place-items: center; }
+    .timer-ring strong { font-size: 38px; font-variant-numeric: tabular-nums; } .timer-ring span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .timer-actions { display: flex; justify-content: center; gap: 9px; }
+    .segment { display: inline-grid; grid-auto-flow: column; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: #f2f4f1; }
+    .segment button { border: 0; background: transparent; color: var(--muted); padding: 7px 12px; border-radius: 5px; }
+    .segment button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(32,39,34,.1); }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; margin-bottom: 16px; }
+    .section-head h2 { margin: 0; font-size: 20px; } .section-head p { color: var(--muted); margin: 5px 0 0; font-size: 13px; }
+    .plan-board { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 14px; overflow-x: auto; }
+    .plan-column { min-width: 220px; border-top: 3px solid var(--blue); padding-top: 12px; } .plan-column:nth-child(2) { border-color: var(--green); } .plan-column:nth-child(3) { border-color: var(--yellow); }
+    .plan-column h3 { font-size: 14px; margin: 0 0 10px; } .plan-item { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 13px; margin-bottom: 9px; }
+    .plan-item strong { font-size: 13px; } .plan-item p { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .full-focus { max-width: 680px; margin: 0 auto; } .full-focus .timer-ring { width: 250px; height: 250px; border-width: 13px; } .full-focus .timer-ring strong { font-size: 56px; }
+    .focus-task { padding: 14px; margin: 0 auto 18px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); display: flex; justify-content: space-between; gap: 12px; }
+    .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .bar-list { display: grid; gap: 13px; } .bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .bar-track { height: 8px; background: #e8ece8; border-radius: 4px; overflow: hidden; } .bar-fill { height: 100%; background: var(--green); border-radius: 4px; }
+    .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; } .day { aspect-ratio: 1; background: #edf0ed; border-radius: 4px; }
+    .day.l1 { background: #cbdccf; } .day.l2 { background: #8fb49b; } .day.l3 { background: #4d8060; }
+    dialog { border: 0; border-radius: 8px; padding: 0; width: min(520px, calc(100% - 28px)); box-shadow: var(--shadow); color: var(--ink); } dialog::backdrop { background: rgba(29,41,33,.46); }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 20px; border-bottom: 1px solid var(--line); } .dialog-head h2 { margin: 0; font-size: 18px; }
+    .dialog-body { padding: 18px 20px; } .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; } .field { display: grid; gap: 6px; } .field.full { grid-column: 1 / -1; }
+    .field label { color: var(--muted); font-size: 12px; } .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 10px; background: #fff; color: var(--ink); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 14px 20px; border-top: 1px solid var(--line); }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 50; padding: 11px 15px; color: #fff; background: #26362e; border-radius: 7px; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); } .mobile-nav { display: none; }
+    @media (max-width: 900px) { .app { grid-template-columns: 76px minmax(0,1fr); } .sidebar { padding: 20px 10px; } .brand-text, .nav span, .weekly { display: none; } .brand, .nav button { justify-content: center; } main { padding: 22px 20px 36px; } .today-grid, .review-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 680px) { .app { display: block; } .sidebar { display: none; } main { padding: 18px 14px 88px; } .topbar { align-items: flex-start; flex-wrap: wrap; } .topbar h1 { font-size: 21px; } .top-actions { width: 100%; margin-left: 0; } .top-actions .btn.primary { flex: 1; } .date-strip { overflow-x: auto; grid-template-columns: repeat(7, 64px); } .metrics { grid-template-columns: 1fr 1fr; } .metric:last-child { grid-column: 1 / -1; } .task { grid-template-columns: 24px minmax(0,1fr) 26px; } .task > .tag { display: none; } .form-grid { grid-template-columns: 1fr; } .field.full { grid-column: auto; } .mobile-nav { position: fixed; display: grid; grid-template-columns: repeat(4, 1fr); left: 0; right: 0; bottom: 0; z-index: 30; padding: 8px 6px max(8px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; } .mobile-nav button { border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; gap: 3px; font-size: 10px; } .mobile-nav button.active { color: var(--green); } .full-focus .timer-ring { width: 210px; height: 210px; } }
+
+    /* Product Design refresh: daily rhythm first, quiet focus second. */
+    :root {
+      --bg: #f7f7fb;
+      --surface: #ffffff;
+      --soft: #eceefa;
+      --ink: #252936;
+      --muted: #707585;
+      --line: #e0e2eb;
+      --green: #5965c8;
+      --green-dark: #454fa8;
+      --yellow: #dcb64c;
+      --blue: #4f7e9d;
+      --red: #c65b54;
+      --shadow: 0 16px 44px rgba(52, 58, 118, .14);
+    }
+    body { background: var(--bg); }
+    .app { grid-template-columns: 208px minmax(0, 1fr); }
+    .sidebar { background: #303550; padding: 30px 14px 22px; gap: 34px; border-right: 1px solid #3d4363; }
+    .brand { padding: 0 10px; }
+    .brand-mark { width: 38px; height: 38px; background: #e1bd5d; color: #303550; }
+    .brand strong { font-size: 20px; }
+    .brand small { color: #c0c3d2; }
+    .nav { gap: 5px; }
+    .nav button { min-height: 44px; padding: 11px 13px; color: #c2c5d5; }
+    .nav button:hover { background: #414768; }
+    .nav button.active { background: #f4f4fa; color: #303550; font-weight: 700; }
+    .weekly { border-top-color: #464c6c; color: #b8bbcb; padding: 18px 10px 0; }
+    .weekly strong { font-size: 19px; }
+    .progress { background: #555a78; }
+    .progress span { background: #e1bd5d; }
+    main { padding: 32px 40px 48px; }
+    .topbar { margin-bottom: 26px; }
+    .topbar h1 { font-size: 27px; line-height: 1.2; }
+    .topbar p { margin-top: 7px; }
+    .top-actions { gap: 8px; }
+    .btn { min-height: 42px; font-weight: 600; }
+    .btn.primary { box-shadow: 0 5px 14px rgba(89, 101, 200, .22); }
+    .icon-btn { width: 42px; }
+    .date-strip { grid-template-columns: repeat(7, minmax(70px, 1fr)); gap: 4px; padding: 7px; margin-bottom: 18px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    .date-btn { min-height: 66px; border-color: transparent; background: transparent; }
+    .date-btn:hover { background: #f1f2f8; }
+    .date-btn.active { background: #5965c8; border-color: #5965c8; color: #f0f1ff; }
+    .date-btn.active strong { color: #fff; }
+    .metrics { grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .metric { min-height: 126px; padding: 19px; border-color: var(--line); }
+    .metric strong { font-size: 29px; margin-top: 12px; }
+    .metric:first-child { background: #4b56ad; border-color: #4b56ad; color: #fff; }
+    .metric:first-child .metric-head, .metric:first-child small { color: #dedff5; }
+    .metric:first-child .metric-icon { background: #626dc2; color: #f2ce75; }
+    .today-grid { grid-template-columns: minmax(0, 1.55fr) minmax(300px, .7fr); gap: 16px; }
+    .panel { border-color: var(--line); padding: 20px; }
+    .panel h2 { font-size: 17px; }
+    .panel-head { margin-bottom: 16px; }
+    .task-list { gap: 0; }
+    .task { min-height: 70px; padding: 12px 6px; border-bottom: 1px solid #edf0ed; border-radius: 0; }
+    .task:last-child { border-bottom: 0; }
+    .task:hover { background: #f4f4fa; border-color: #ededf3; }
+    .task-title { font-size: 14px; }
+    .tag { background: #eceefa; color: #4b55ac; }
+    .tag.blue { background: #e9eef3; color: #3f5e78; }
+    .tag.yellow { background: #f8efd9; color: #815d18; }
+    .next-block { min-height: 78px; background: #eef0fa; }
+    .focus-card { background: #f1f2f8; }
+    .timer-ring { width: 184px; height: 184px; border-width: 9px; border-color: #dfe1ec; border-top-color: #5965c8; border-right-color: #5965c8; }
+    .task input { accent-color: #2f7b5b; }
+    .timer-ring strong { font-size: 40px; }
+    .segment { background: #ebefeb; }
+    .segment button { min-width: 48px; }
+    .section-head { margin-bottom: 20px; }
+    .section-head h2 { font-size: 22px; }
+    .plan-board { gap: 16px; }
+    .plan-column { border-top-width: 4px; padding-top: 15px; }
+    .plan-column h3 { margin-bottom: 12px; font-size: 15px; }
+    .plan-item { padding: 15px; border-color: var(--line); }
+    .plan-item strong { font-size: 14px; }
+    .full-focus { max-width: 720px; }
+    .full-focus .timer-ring { width: 260px; height: 260px; }
+    .focus-task { padding: 16px; border-color: var(--line); }
+    .review-grid { gap: 16px; }
+    dialog { box-shadow: var(--shadow); }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 72px minmax(0,1fr); }
+      main { padding: 28px 24px 40px; }
+      .today-grid, .review-grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .metric:first-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 680px) {
+      main { padding: 22px 16px 92px; }
+      .topbar { margin-bottom: 22px; }
+      .topbar h1 { font-size: 24px; }
+      .top-actions { gap: 7px; }
+      .date-strip { grid-template-columns: repeat(7, 66px); gap: 3px; padding: 6px; }
+      .date-btn { min-height: 62px; }
+      .metrics { gap: 10px; }
+      .metric:last-child { grid-column: auto; }
+      .metric { min-height: 122px; padding: 17px; }
+      .metric:first-child { min-height: 112px; }
+      .today-grid { gap: 14px; }
+      .panel { padding: 17px; }
+      .task { min-height: 68px; padding-left: 3px; padding-right: 3px; }
+      .focus-card { background: #f2f2f8; }
+      .full-focus .timer-ring { width: 220px; height: 220px; }
+      .mobile-nav { padding-top: 9px; background: rgba(255,255,255,.98); }
+      .mobile-nav button { min-height: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark"><i data-lucide="timer-reset"></i></div><div class="brand-text"><strong>时序</strong><small>学习与专注助手</small></div></div>
+      <nav class="nav" aria-label="主导航">
+        <button class="active" data-view-target="today"><i data-lucide="sun"></i><span>今日</span></button>
+        <button data-view-target="plan"><i data-lucide="calendar-range"></i><span>计划</span></button>
+        <button data-view-target="focus"><i data-lucide="timer"></i><span>专注</span></button>
+        <button data-view-target="review"><i data-lucide="chart-column"></i><span>复盘</span></button>
+      </nav>
+      <div class="weekly">本周目标<strong>13.5 / 20h</strong><div class="progress"><span></span></div></div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div><h1 id="pageTitle">今日学习</h1><p id="pageSubtitle">7月22日 周三 · 保持节奏，完成 4 个学习块</p></div>
+        <div class="top-actions"><button class="btn icon-btn" id="quickFocus" aria-label="快速专注" title="快速专注"><i data-lucide="zap"></i></button><button class="btn primary" id="openTask"><i data-lucide="plus"></i>添加任务</button></div>
+      </header>
+
+      <section class="view active" id="today">
+        <div class="date-strip" aria-label="日期选择">
+          <button class="date-btn"><span>周一</span><strong>20</strong></button><button class="date-btn"><span>周二</span><strong>21</strong></button><button class="date-btn active"><span>今天</span><strong>22</strong></button><button class="date-btn"><span>周四</span><strong>23</strong></button><button class="date-btn"><span>周五</span><strong>24</strong></button><button class="date-btn"><span>周六</span><strong>25</strong></button><button class="date-btn"><span>周日</span><strong>26</strong></button>
+        </div>
+        <div class="metrics">
+          <article class="metric"><div class="metric-head"><span>今日进度</span><span class="metric-icon"><i data-lucide="circle-check-big"></i></span></div><strong id="progressText">1 / 4</strong><small>预计剩余 2 小时 10 分</small></article>
+          <article class="metric"><div class="metric-head"><span>专注时长</span><span class="metric-icon"><i data-lucide="hourglass"></i></span></div><strong>50 min</strong><small>连续专注 2 次</small></article>
+          <article class="metric"><div class="metric-head"><span>连续学习</span><span class="metric-icon"><i data-lucide="flame"></i></span></div><strong>12 天</strong><small>本周已完成 68%</small></article>
+        </div>
+        <div class="today-grid">
+          <div>
+            <section class="panel"><div class="panel-head"><h2>今日任务</h2><span class="muted">拖动手柄调整顺序</span></div>
+              <div class="task-list" id="taskList">
+                <div class="task done" draggable="true"><input type="checkbox" checked aria-label="完成任务"><div><div class="task-title">复习 ArkTS 状态管理</div><div class="task-meta"><span>09:00 - 09:50</span><span>50 分钟</span></div></div><span class="tag">鸿蒙开发</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
+                <div class="task" draggable="true"><input type="checkbox" aria-label="完成任务"><div><div class="task-title">完成天气卡片组件</div><div class="task-meta"><span>10:30 - 11:20</span><span>50 分钟</span></div></div><span class="tag blue">项目实战</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
+                <div class="task" draggable="true"><input type="checkbox" aria-label="完成任务"><div><div class="task-title">阅读性能优化章节</div><div class="task-meta"><span>14:00 - 14:40</span><span>40 分钟</span></div></div><span class="tag yellow">技术阅读</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
+                <div class="task" draggable="true"><input type="checkbox" aria-label="完成任务"><div><div class="task-title">整理面试题与错题</div><div class="task-meta"><span>20:00 - 20:30</span><span>30 分钟</span></div></div><span class="tag">求职准备</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
+              </div>
+            </section>
+            <section class="panel"><div class="panel-head"><h2>下一学习块</h2><span class="muted">10:30 开始</span></div><div class="next-block"><div class="next-time">50<br><span class="muted">分钟</span></div><div><strong>完成天气卡片组件</strong><div class="task-meta">项目实战 · 目标：完成数据加载与异常态</div></div></div></section>
+          </div>
+          <aside class="panel focus-card"><div class="panel-head"><h2>专注计时</h2><span class="muted" id="timerModeLabel">专注</span></div><div class="timer-ring"><div><strong class="timerValue">25:00</strong><span>准备开始</span></div></div><div class="timer-actions"><button class="btn icon-btn resetTimer" aria-label="重置计时"><i data-lucide="rotate-ccw"></i></button><button class="btn primary toggleTimer"><i data-lucide="play"></i><span>开始专注</span></button></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="plan">
+        <div class="section-head"><div><h2>本周计划</h2><p>按学习阶段拆分目标，并形成可执行任务</p></div><div class="segment"><button class="active">周</button><button>月</button></div></div>
+        <div class="plan-board">
+          <section class="plan-column"><h3>基础巩固 · 4 项</h3><article class="plan-item"><strong>ArkTS 类型与语法</strong><p>复习联合类型、泛型、空值处理</p></article><article class="plan-item"><strong>ArkUI 状态管理</strong><p>完成 @State、@Prop、@Link 示例</p></article></section>
+          <section class="plan-column"><h3>项目实战 · 5 项</h3><article class="plan-item"><strong>天气卡片组件</strong><p>数据加载、骨架屏与错误重试</p></article><article class="plan-item"><strong>物迹资产列表</strong><p>实现筛选、搜索与懒加载</p></article><article class="plan-item"><strong>本地数据持久化</strong><p>封装 Preferences 与关系型数据</p></article></section>
+          <section class="plan-column"><h3>复盘输出 · 3 项</h3><article class="plan-item"><strong>性能问题清单</strong><p>记录 5 个常见渲染性能问题</p></article><article class="plan-item"><strong>周总结</strong><p>沉淀代码片段与下周改进项</p></article></section>
+        </div>
+      </section>
+
+      <section class="view" id="focus">
+        <div class="full-focus focus-card"><div class="section-head"><div><h2>沉浸专注</h2><p>关闭干扰，完成当前学习块</p></div><div class="segment" id="modeSegment"><button class="active" data-minutes="25">专注</button><button data-minutes="5">短休息</button><button data-minutes="15">长休息</button></div></div><div class="focus-task"><div><strong>完成天气卡片组件</strong><div class="task-meta">项目实战 · 当前任务</div></div><span class="tag blue">50 分钟</span></div><div class="timer-ring"><div><strong class="timerValue">25:00</strong><span>准备开始</span></div></div><div class="timer-actions"><button class="btn icon-btn resetTimer" aria-label="重置计时"><i data-lucide="rotate-ccw"></i></button><button class="btn primary toggleTimer"><i data-lucide="play"></i><span>开始专注</span></button><button class="btn icon-btn" id="skipTimer" aria-label="跳过当前阶段"><i data-lucide="skip-forward"></i></button></div></div>
+      </section>
+
+      <section class="view" id="review">
+        <div class="section-head"><div><h2>学习复盘</h2><p>用完成数据校准下周计划</p></div><select class="btn" aria-label="统计周期"><option>本周</option><option>近 30 天</option></select></div>
+        <div class="metrics"><article class="metric"><div class="metric-head"><span>总专注</span><span class="metric-icon"><i data-lucide="clock-3"></i></span></div><strong>13.5 h</strong><small>较上周增加 2.1 小时</small></article><article class="metric"><div class="metric-head"><span>任务完成率</span><span class="metric-icon"><i data-lucide="badge-check"></i></span></div><strong>81%</strong><small>完成 17 / 21 项</small></article><article class="metric"><div class="metric-head"><span>最佳时段</span><span class="metric-icon"><i data-lucide="sunrise"></i></span></div><strong>09:00</strong><small>平均专注 46 分钟</small></article></div>
+        <div class="review-grid"><section class="panel"><div class="panel-head"><h2>分类投入</h2><span class="muted">13.5 小时</span></div><div class="bar-list"><div><div class="bar-label"><span>鸿蒙开发</span><strong>6.2h</strong></div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div></div><div><div class="bar-label"><span>项目实战</span><strong>4.5h</strong></div><div class="bar-track"><div class="bar-fill" style="width:57%;background:var(--blue)"></div></div></div><div><div class="bar-label"><span>面试准备</span><strong>2.8h</strong></div><div class="bar-track"><div class="bar-fill" style="width:35%;background:var(--yellow)"></div></div></div></div></section><section class="panel"><div class="panel-head"><h2>近四周专注</h2><span class="muted">颜色越深时长越高</span></div><div class="heatmap" aria-label="学习热力图"><span class="day l1"></span><span class="day l2"></span><span class="day"></span><span class="day l3"></span><span class="day l2"></span><span class="day l1"></span><span class="day"></span><span class="day l2"></span><span class="day l3"></span><span class="day l1"></span><span class="day l2"></span><span class="day"></span><span class="day l3"></span><span class="day l1"></span><span class="day l3"></span><span class="day l2"></span><span class="day l2"></span><span class="day"></span><span class="day l1"></span><span class="day l3"></span><span class="day l2"></span><span class="day l3"></span><span class="day l1"></span><span class="day l2"></span><span class="day l3"></span><span class="day l2"></span><span class="day l1"></span><span class="day"></span></div></section></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="移动端导航"><button class="active" data-view-target="today"><i data-lucide="sun"></i><span>今日</span></button><button data-view-target="plan"><i data-lucide="calendar-range"></i><span>计划</span></button><button data-view-target="focus"><i data-lucide="timer"></i><span>专注</span></button><button data-view-target="review"><i data-lucide="chart-column"></i><span>复盘</span></button></nav>
+  <dialog id="taskDialog"><form method="dialog" id="taskForm"><div class="dialog-head"><h2>添加学习任务</h2><button class="btn icon-btn" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="dialog-body"><div class="form-grid"><div class="field full"><label for="taskName">任务名称</label><input id="taskName" required placeholder="例如：完成 ArkUI 列表练习"></div><div class="field"><label for="taskType">分类</label><select id="taskType"><option>鸿蒙开发</option><option>项目实战</option><option>技术阅读</option><option>求职准备</option></select></div><div class="field"><label for="taskDuration">预计时长</label><select id="taskDuration"><option value="25">25 分钟</option><option value="40">40 分钟</option><option value="50">50 分钟</option><option value="90">90 分钟</option></select></div><div class="field"><label for="taskTime">开始时间</label><input id="taskTime" type="time" value="16:00"></div><div class="field"><label for="taskDate">执行日期</label><input id="taskDate" type="date" value="2026-07-22"></div></div></div><div class="dialog-actions"><button class="btn" value="cancel">取消</button><button class="btn primary" id="saveTask" value="default">保存任务</button></div></form></dialog>
+  <div class="toast" id="toast" role="status">操作已完成</div>
+
+  <script>
+    (function () {
+      var titles = { today: ['今日学习', '7月22日 周三 · 保持节奏，完成 4 个学习块'], plan: ['学习计划', '把目标拆成每周可执行的学习块'], focus: ['专注模式', '聚焦一个任务，按节奏完成学习'], review: ['学习复盘', '查看投入、完成率和高效时段'] };
+      var secondsLeft = 25 * 60, defaultMinutes = 25, timerId = null;
+      var navButtons = document.querySelectorAll('[data-view-target]'), views = document.querySelectorAll('.view'), toast = document.getElementById('toast');
+      function icons() { if (window.lucide) window.lucide.createIcons({ attrs: { width: 18, height: 18, 'stroke-width': 1.8 } }); }
+      function showToast(message) { toast.textContent = message; toast.classList.add('show'); window.setTimeout(function () { toast.classList.remove('show'); }, 1700); }
+      function setView(id) { views.forEach(function (v) { v.classList.toggle('active', v.id === id); }); navButtons.forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-view-target') === id); }); document.getElementById('pageTitle').textContent = titles[id][0]; document.getElementById('pageSubtitle').textContent = titles[id][1]; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      navButtons.forEach(function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view-target')); }); });
+      document.getElementById('quickFocus').addEventListener('click', function () { setView('focus'); });
+      document.querySelectorAll('.date-btn').forEach(function (b) { b.addEventListener('click', function () { document.querySelectorAll('.date-btn').forEach(function (d) { d.classList.remove('active'); }); b.classList.add('active'); showToast('已切换到 ' + b.textContent.trim()); }); });
+      function updateProgress() { var tasks = document.querySelectorAll('#taskList .task'), done = document.querySelectorAll('#taskList .task.done').length; document.getElementById('progressText').textContent = done + ' / ' + tasks.length; }
+      function bindChecks() { document.querySelectorAll('#taskList input[type="checkbox"]').forEach(function (box) { box.onchange = function () { box.closest('.task').classList.toggle('done', box.checked); updateProgress(); showToast(box.checked ? '任务已完成' : '任务已恢复'); }; }); }
+      bindChecks();
+      document.getElementById('openTask').addEventListener('click', function () { document.getElementById('taskDialog').showModal(); });
+      document.getElementById('saveTask').addEventListener('click', function (event) { event.preventDefault(); var name = document.getElementById('taskName').value.trim(); if (!name) { document.getElementById('taskName').focus(); return; } var time = document.getElementById('taskTime').value, duration = document.getElementById('taskDuration').value, type = document.getElementById('taskType').value; var task = document.createElement('div'); task.className = 'task'; task.draggable = true; task.innerHTML = '<input type="checkbox" aria-label="完成任务"><div><div class="task-title"></div><div class="task-meta"><span>' + time + '</span><span>' + duration + ' 分钟</span></div></div><span class="tag">' + type + '</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button>'; task.querySelector('.task-title').textContent = name; document.getElementById('taskList').appendChild(task); document.getElementById('taskForm').reset(); document.getElementById('taskDialog').close(); bindChecks(); bindDrag(task); updateProgress(); icons(); showToast('学习任务已添加'); });
+      function renderTimer() { var min = String(Math.floor(secondsLeft / 60)).padStart(2, '0'), sec = String(secondsLeft % 60).padStart(2, '0'); document.querySelectorAll('.timerValue').forEach(function (v) { v.textContent = min + ':' + sec; }); }
+      function setTimerRunning(running) { document.querySelectorAll('.toggleTimer').forEach(function (b) { b.innerHTML = running ? '<i data-lucide="pause"></i><span>暂停</span>' : '<i data-lucide="play"></i><span>开始专注</span>'; }); icons(); }
+      function toggleTimer() { if (timerId) { clearInterval(timerId); timerId = null; setTimerRunning(false); return; } timerId = window.setInterval(function () { secondsLeft -= 1; renderTimer(); if (secondsLeft <= 0) { clearInterval(timerId); timerId = null; secondsLeft = defaultMinutes * 60; renderTimer(); setTimerRunning(false); showToast('本轮已完成，休息一下'); } }, 1000); setTimerRunning(true); }
+      document.querySelectorAll('.toggleTimer').forEach(function (b) { b.addEventListener('click', toggleTimer); });
+      document.querySelectorAll('.resetTimer').forEach(function (b) { b.addEventListener('click', function () { if (timerId) clearInterval(timerId); timerId = null; secondsLeft = defaultMinutes * 60; renderTimer(); setTimerRunning(false); showToast('计时器已重置'); }); });
+      document.querySelectorAll('#modeSegment button').forEach(function (b) { b.addEventListener('click', function () { document.querySelectorAll('#modeSegment button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); defaultMinutes = Number(b.getAttribute('data-minutes')); secondsLeft = defaultMinutes * 60; if (timerId) clearInterval(timerId); timerId = null; renderTimer(); setTimerRunning(false); }); });
+      document.getElementById('skipTimer').addEventListener('click', function () { defaultMinutes = 5; secondsLeft = 5 * 60; if (timerId) clearInterval(timerId); timerId = null; renderTimer(); setTimerRunning(false); showToast('已进入短休息'); });
+      document.querySelectorAll('.segment').forEach(function (s) { if (s.id === 'modeSegment') return; s.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { s.querySelectorAll('button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); showToast('计划视图已切换'); }); }); });
+      var dragged = null;
+      function bindDrag(task) { task.addEventListener('dragstart', function () { dragged = task; task.classList.add('dragging'); }); task.addEventListener('dragend', function () { task.classList.remove('dragging'); dragged = null; showToast('任务顺序已更新'); }); task.addEventListener('dragover', function (event) { event.preventDefault(); if (dragged && dragged !== task) { var box = task.getBoundingClientRect(); document.getElementById('taskList').insertBefore(dragged, event.clientY < box.top + box.height / 2 ? task : task.nextSibling); } }); }
+      document.querySelectorAll('#taskList .task').forEach(bindDrag); updateProgress(); renderTimer(); icons();
+    }());
+  </script>
+</body>
+</html>
