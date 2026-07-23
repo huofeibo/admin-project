@@ -7,14 +7,11 @@ concurrency:
   group: portfolio-production
   cancel-in-progress: false
 
-env:
-  IMAGE_NAME: admin-project
-
 jobs:
   deploy:
     name: Build and deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: production
     permissions:
       contents: read
@@ -22,21 +19,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image archive
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          outputs: type=docker,dest=/tmp/admin-project-image.tar
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Compress image archive
-        run: gzip -1 /tmp/admin-project-image.tar
 
       - name: Configure SSH
         env:
@@ -49,7 +31,7 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Upload image and deployment script
+      - name: Upload deployment bootstrap
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
@@ -58,26 +40,21 @@ jobs:
           scp \
             -i ~/.ssh/deploy_key \
             -P "${DEPLOY_PORT:-22}" \
-            scripts/deploy-image.sh \
-            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/admin-project-deploy-image.sh"
-          scp \
-            -i ~/.ssh/deploy_key \
-            -P "${DEPLOY_PORT:-22}" \
-            /tmp/admin-project-image.tar.gz \
-            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/admin-project-image.tar.gz"
+            scripts/deploy-source.sh \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/admin-project-deploy-source.sh"
 
       - name: Deploy image
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          IMAGE_REF: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          DEPLOY_REVISION: ${{ github.sha }}
         run: |
           ssh \
             -i ~/.ssh/deploy_key \
             -p "${DEPLOY_PORT:-22}" \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "gzip -dc /tmp/admin-project-image.tar.gz | docker load && rm -f /tmp/admin-project-image.tar.gz && chmod +x /tmp/admin-project-deploy-image.sh && /tmp/admin-project-deploy-image.sh '$IMAGE_REF'"
+            "chmod +x /tmp/admin-project-deploy-source.sh && /tmp/admin-project-deploy-source.sh 'https://github.com/huofeibo/admin-project.git' '$DEPLOY_REVISION'"
 
       - name: Verify public routes
         run: |

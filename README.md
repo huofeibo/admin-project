@@ -189,8 +189,8 @@ sudo systemctl reload nginx
 流水线会自动完成：
 
 ```text
-检出代码 -> 构建 Docker 镜像 -> 压缩镜像归档
--> SSH 上传腾讯云 -> docker load -> 更新容器 -> 健康检查
+检出流水线代码 -> SSH 连接腾讯云
+-> 服务器拉取指定 Git 提交 -> Docker 构建 -> 更新容器 -> 健康检查
 -> 失败自动回滚旧镜像 -> 验证公网路由
 ```
 
@@ -224,7 +224,7 @@ ssh-keyscan -H -p 22 82.157.121.102
 
 将输出整行写入 `DEPLOY_KNOWN_HOSTS`。首次流水线运行成功后，再用 `deploy/nginx-host.conf.example` 完成一次宿主机 Nginx 反向代理切换。此后发布不再登录服务器。
 
-镜像由 GitHub Runner 构建后通过 SCP 直接传到服务器，不依赖腾讯云访问 GHCR，避免国内网络拉取镜像层不稳定。镜像使用 Git 提交号作为不可变版本标签。
+流水线只传输轻量部署脚本，服务器从公开 GitHub 仓库拉取指定提交并本地构建，避免国内服务器拉取 GHCR 镜像或接收 GitHub Runner 大文件时链路不稳定。镜像仍使用 Git 提交号作为不可变版本标签。
 
 ### 服务器命令行备用发布
 
