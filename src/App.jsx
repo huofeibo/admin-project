@@ -7,7 +7,7 @@ import {
   Smartphone, Sparkles, Store, Timer, Trash2, Wrench, X
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8787';
+const API_BASE = (import.meta.env.VITE_DEMO_API_BASE_URL || '').replace(/\/+$/, '');
 
 const familySeed = [
   { id: 'WF-24018', name: '海尔双门冰箱', room: '厨房', category: '大家电', warranty: '2027.03.12', state: '正常' },
@@ -46,16 +46,16 @@ function Portfolio() {
       <main>
         <section className="portfolio-hero">
           <div className="hero-copy">
-            <p className="eyebrow">个人项目作品集 · 2026</p>
+            <p className="eyebrow">个人产品与工程实践 · 持续更新</p>
             <h1>霍延波</h1>
             <p className="hero-role">Frontend & HarmonyOS Developer</p>
-            <p className="hero-lede">把产品问题落到可操作界面，也把界面接进真实服务。这里展示两套覆盖 Web、HarmonyOS 与云端 API 的完整项目原型。</p>
+            <p className="hero-lede">这里持续收录 Web、HarmonyOS 与云端方向的个人项目，记录从问题定义、产品设计到工程实现与上线迭代的完整过程。</p>
             <div className="hero-actions">
               <a className="button primary" href="#projects">查看项目<ArrowRight size={18} /></a>
               <a className="button secondary" href="#architecture">技术架构<Layers3 size={18} /></a>
             </div>
             <div className="hero-proof" aria-label="项目范围">
-              <span><strong>2</strong> 产品项目</span><span><strong>4</strong> 客户端体验</span><span><strong>1</strong> API 服务</span>
+              <span><strong>持续更新</strong>项目档案</span><span><strong>多端实践</strong>Web · HarmonyOS</span><span><strong>完整链路</strong>设计 · 开发 · 部署</span>
             </div>
           </div>
           <div className="hero-products" aria-label="项目界面预览">
@@ -71,7 +71,7 @@ function Portfolio() {
         </section>
 
         <section className="project-section" id="projects">
-          <div className="section-intro"><p className="eyebrow">Selected projects</p><h2>从个人场景到商户运营</h2><p>两个项目都从明确的业务闭环出发，不只停留在单页视觉稿。</p></div>
+          <div className="section-intro"><p className="eyebrow">Selected projects</p><h2>持续生长的产品实践</h2><p>每个项目都从明确的问题和业务闭环出发，并随着设计、开发和部署进度持续更新。</p></div>
 
           <article className="project-feature wuji-feature">
             <div className="project-story">
@@ -113,7 +113,7 @@ function Portfolio() {
         </section>
 
         <section className="architecture-section" id="architecture">
-          <div className="section-intro"><p className="eyebrow">System thinking</p><h2>不是两张界面，而是完整端云协同</h2><p>演示服务已实现核心接口与数据流，生产方案预留鉴权、持久化、审计和消息能力。</p></div>
+          <div className="section-intro"><p className="eyebrow">System thinking</p><h2>不只展示界面，也记录系统如何落地</h2><p>从客户端体验到接口、数据与部署，每个项目都会呈现真实进度和可验证的工程实现。</p></div>
           <div className="architecture-map">
             <div className="arch-column"><span className="arch-kicker">Clients</span><div><Smartphone />HarmonyOS Apps</div><div><Laptop />Web Applications</div></div>
             <ChevronRight className="arch-arrow" />
@@ -121,11 +121,11 @@ function Portfolio() {
             <ChevronRight className="arch-arrow" />
             <div className="arch-column"><span className="arch-kicker">Data</span><div><Database />PostgreSQL</div><div><Bell />Notification</div></div>
           </div>
-          <div className="architecture-links"><a href="http://localhost:8787/api/health" target="_blank" rel="noreferrer">查看 API 健康状态<ExternalLink size={15} /></a><a href="/demos/asset-keeper.html">商户端演示<ExternalLink size={15} /></a><a href="/wuji/family-app">家庭端演示<ExternalLink size={15} /></a></div>
+          <div className="architecture-links">{API_BASE && <a href={`${API_BASE}/api/health`} target="_blank" rel="noreferrer">查看 API 健康状态<ExternalLink size={15} /></a>}<a href="/demos/asset-keeper.html">商户端演示<ExternalLink size={15} /></a><a href="/wuji/family-app">家庭端演示<ExternalLink size={15} /></a></div>
         </section>
       </main>
 
-      <footer className="site-footer"><Brand compact /><p>独立设计与开发的产品原型作品集</p><span>2026 · Beijing</span></footer>
+      <footer className="site-footer"><Brand compact /><p>持续更新的个人产品与工程实践</p><span>Beijing</span></footer>
     </div>
   );
 }
@@ -225,6 +225,7 @@ function FamilyApp() {
   const filteredAssets = useMemo(() => assets.filter(item => `${item.name}${item.room}${item.category}`.includes(query)), [assets, query]);
 
   useEffect(() => {
+    if (!API_BASE) return;
     fetch(`${API_BASE}/api/wuji/family/assets`).then(r => r.ok ? r.json() : null).then(data => {
       if (data?.items?.length) setAssets(data.items);
     }).catch(() => {});
@@ -235,7 +236,7 @@ function FamilyApp() {
     if (!form.name.trim()) return;
     const asset = { id: `WF-${String(Date.now()).slice(-5)}`, ...form, state: '正常' };
     setAssets(items => [asset, ...items]);
-    fetch(`${API_BASE}/api/wuji/family/assets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(asset) }).catch(() => {});
+    if (API_BASE) fetch(`${API_BASE}/api/wuji/family/assets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(asset) }).catch(() => {});
     setDialogOpen(false); setForm({ name: '', room: '客厅', category: '大家电', warranty: '' }); setToast('资产已保存');
     window.setTimeout(() => setToast(''), 2200);
   }

@@ -1,6 +1,6 @@
 # 霍延波个人项目展示
 
-个人项目作品集网站，集中展示前端、HarmonyOS 与服务端方向的产品实践。目前包含「物迹」和「时序」两个独立项目，以及物迹家庭版、物迹商户版和时序的可交互产品原型。
+持续更新的个人项目作品集网站，集中展示前端、HarmonyOS、产品设计与服务端方向的工程实践。当前收录「物迹」和「时序」，后续项目继续接入同一展示入口，不依赖固定项目数量。
 
 > 当前状态：展示站源码、产品截图、交互原型和演示 API 已迁入本仓库。当前后端使用内存数据，仅用于作品展示和接口契约验证，不是生产服务。
 
@@ -13,7 +13,7 @@
 | `/wuji/family-app` | 物迹家庭版 HarmonyOS 风格交互原型 |
 | `/demos/asset-keeper.html` | 物迹商户版 Web/HarmonyOS 响应式原型 |
 | `/demos/focus-plan.html` | 时序 Web/HarmonyOS 响应式原型 |
-| `http://localhost:8787/api/health` | 演示 API 健康检查 |
+| `http://localhost:8787/api/health` | 仅本地开发使用的演示 API 健康检查 |
 
 ## 项目仓库
 
@@ -67,14 +67,53 @@ npm run build
 npm run preview
 ```
 
+## 环境配置
+
+复制示例配置：
+
+```bash
+cp .env.example .env
+```
+
+`VITE_DEMO_API_BASE_URL` 默认为空。生产站点为空时使用原型种子数据，不会请求访问者电脑上的 `localhost`。只有本地启动演示 API 时才设置：
+
+```text
+VITE_DEMO_API_BASE_URL=http://localhost:8787
+```
+
+## Docker
+
+本地构建并启动容器：
+
+```bash
+docker compose up --detach --build
+```
+
+检查：
+
+```bash
+docker compose ps
+curl -I http://127.0.0.1:8080/healthz
+```
+
+站点只绑定宿主机回环地址 `127.0.0.1:8080`，不会绕过宿主机 Nginx 直接暴露公网。停止服务：
+
+```bash
+docker compose down
+```
+
 ## 目录结构
 
 ```text
 admin-project/
+├── deploy/             # 容器及宿主机 Nginx 配置
 ├── public/
 │   ├── assets/          # 项目截图
 │   └── demos/           # 独立交互原型
 ├── services/api/        # 演示后端服务
+├── scripts/deploy.sh    # 服务器一键更新脚本
+├── Dockerfile
+├── compose.yaml
 └── src/                 # React 展示站源码
 ```
 
@@ -87,13 +126,132 @@ project/admin-project/
 └── focus-plan/          # 时序仓库
 ```
 
-## 生产部署建议
+## 生产部署
 
-- 前端构建产物部署到 Nginx 或对象存储 CDN。
-- API 独立部署，通过 `/api` 反向代理，避免前端写死服务地址。
-- 使用 PostgreSQL、Redis 和对象存储替换内存数据。
-- 增加 OAuth/JWT、租户权限、审计日志、限流、备份和可观测性。
-- 配置正式域名、HTTPS、错误监控和持续部署流程。
+生产拓扑：
+
+```text
+Internet :443
+    -> 宿主机 Nginx（域名、证书、HTTPS）
+    -> 127.0.0.1:8080
+    -> Docker: admin-project-web（静态站与 SPA 回退）
+```
+
+证书只保存在宿主机 `/etc/nginx/ssl`，不复制进镜像、Compose 配置或 Git 仓库。
+
+### 首次迁移到 Docker
+
+服务器要求 Docker Engine、Compose plugin 和 Git。Ubuntu 24.04 可先安装发行版软件包：
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-v2 git
+sudo systemctl enable --now docker
+sudo usermod -aG docker ubuntu
+```
+
+重新登录服务器使 `docker` 用户组生效，然后验证：
+
+```bash
+docker version
+docker compose version
+```
+
+代码首次部署：
+
+```bash
+sudo mkdir -p /opt/admin-project
+sudo chown ubuntu:ubuntu /opt/admin-project
+git clone https://github.com/huofeibo/admin-project.git /opt/admin-project
+cd /opt/admin-project
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+确认容器健康后，将 `deploy/nginx-host.conf.example` 复制到宿主机 Nginx 配置目录，执行：
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+不要在容器健康检查通过前切换宿主机 Nginx。当前手工部署的 `/var/www/admin-project` 可暂时保留，作为迁移失败时的回滚来源。
+
+### GitHub Actions 一键发布
+
+流水线位于 `.github/workflows/deploy.yml`。完成一次性配置后，日常发布流程是：
+
+1. 本地修改、验证、提交并推送 GitHub。
+2. 打开 GitHub 仓库的 **Actions** 页面。
+3. 选择 **Deploy portfolio**。
+4. 点击 **Run workflow**。
+
+流水线会自动完成：
+
+```text
+检出代码 -> 构建 Docker 镜像 -> 推送 GHCR
+-> SSH 连接腾讯云 -> 更新容器 -> 健康检查
+-> 失败自动回滚旧镜像 -> 验证公网路由
+```
+
+在 GitHub 仓库的 `Settings -> Environments` 创建 `production` 环境。需要人工审批时，可在该环境配置 required reviewers。以下内容添加到 `production -> Environment secrets`：
+
+| Secret | 值 |
+| --- | --- |
+| `DEPLOY_HOST` | `82.157.121.102` |
+| `DEPLOY_PORT` | SSH 端口，默认 `22` |
+| `DEPLOY_USER` | `ubuntu` |
+| `DEPLOY_SSH_KEY` | 专用部署私钥的完整内容 |
+| `DEPLOY_KNOWN_HOSTS` | 服务器 SSH host key 记录 |
+
+不要使用个人日常 SSH 私钥。建议在 Mac 生成独立部署密钥：
+
+```bash
+ssh-keygen -t ed25519 -C github-actions-admin-project -f ~/.ssh/admin_project_deploy
+```
+
+把 `admin_project_deploy.pub` 的公钥追加到服务器：
+
+```text
+/home/ubuntu/.ssh/authorized_keys
+```
+
+私钥 `admin_project_deploy` 的完整内容只写入 GitHub Secret `DEPLOY_SSH_KEY`。生成 known hosts 内容：
+
+```bash
+ssh-keyscan -H -p 22 82.157.121.102
+```
+
+将输出整行写入 `DEPLOY_KNOWN_HOSTS`。首次流水线运行成功后，再用 `deploy/nginx-host.conf.example` 完成一次宿主机 Nginx 反向代理切换。此后发布不再登录服务器。
+
+GitHub Actions 使用当前任务短期 `GITHUB_TOKEN` 登录 GHCR，不需要额外保存长期 Registry Token。镜像包保持私有也可部署。
+
+### 服务器命令行备用发布
+
+当 GitHub Actions 暂时不可用时，可在服务器仓库中执行：
+
+```bash
+cd /opt/admin-project
+./scripts/deploy.sh
+```
+
+该脚本会检查服务器工作区、快进拉取、在服务器构建镜像并等待健康状态。它是应急方式，不是日常发布入口。
+
+查看运行状态和日志：
+
+```bash
+docker compose ps
+docker compose logs --tail=100 web
+```
+
+回滚时切到已验证的 Git 提交，再重新构建：
+
+```bash
+git switch --detach <已验证提交号>
+docker compose up --detach --build
+```
+
+演示 API 默认不加入生产 Compose。物迹与时序的正式 API 应在各自仓库中实现鉴权、持久化、审计、备份和监控后独立部署。
 
 ## 当前进度
 
@@ -103,7 +261,11 @@ project/admin-project/
 - [x] 整合物迹商户版与时序原型
 - [x] 提供可运行的演示 API
 - [ ] 替换正式联系方式与项目仓库链接
-- [ ] 配置云服务器、域名和 HTTPS
+- [x] 配置云服务器、域名和 HTTPS
+- [x] 提供 Docker/Compose 和一键部署脚本
+- [x] 提供 GitHub Actions 手动发布流水线和失败回滚
+- [ ] 将线上站点从手工静态目录迁移到 Docker 容器
+- [ ] 配置 GitHub production 环境、Actions Secrets 和专用部署密钥
 - [ ] 接入各项目正式发布版本
 
 ## 仓库

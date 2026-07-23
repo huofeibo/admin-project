@@ -12,3 +12,9 @@ coverage/
 *.local
 *.tsbuildinfo
 *.log
+admin-project-dist.zip
+*.crt
+*.key
+*.pem
+*.csr
+certificates/

@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_DEMO_API_BASE_URL: ${VITE_DEMO_API_BASE_URL:-}
+    image: admin-project:${IMAGE_TAG:-local}
+    container_name: admin-project-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
