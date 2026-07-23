@@ -7,7 +7,10 @@ HOST_PORT=8080
 
 previous_image=$(docker inspect --format '{{.Config.Image}}' "$CONTAINER_NAME" 2>/dev/null || true)
 
-docker pull "$IMAGE_REF"
+if ! docker image inspect "$IMAGE_REF" >/dev/null 2>&1; then
+  echo "Deployment failed: image $IMAGE_REF is not loaded on the server." >&2
+  exit 1
+fi
 
 if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
   docker rm --force "$CONTAINER_NAME"
