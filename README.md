@@ -269,7 +269,7 @@ docker logs --tail=100 admin-project-web
 - [x] 配置云服务器、域名和 HTTPS
 - [x] 提供 Docker/Compose 和一键部署脚本
 - [x] 提供 GitHub Actions 手动发布流水线和失败回滚
-- [ ] 将线上站点从手工静态目录迁移到 Docker 容器
+- [x] 将线上站点从手工静态目录迁移到 Docker 容器
 - [x] 配置 GitHub production 环境、Actions Secrets 和专用部署密钥
 - [ ] 接入各项目正式发布版本
 
