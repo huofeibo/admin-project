@@ -11,7 +11,7 @@ jobs:
   deploy:
     name: Build and deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment: production
     permissions:
       contents: read
@@ -31,7 +31,15 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Upload deployment bootstrap
+      - name: Package deployment source
+        run: |
+          git archive \
+            --format=tar.gz \
+            --output=/tmp/admin-project-source.tar.gz \
+            "$GITHUB_SHA"
+          test -s /tmp/admin-project-source.tar.gz
+
+      - name: Upload deployment source
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
@@ -40,10 +48,14 @@ jobs:
           scp \
             -i ~/.ssh/deploy_key \
             -P "${DEPLOY_PORT:-22}" \
+            -o ConnectTimeout=30 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=4 \
             scripts/deploy-source.sh \
-            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/admin-project-deploy-source.sh"
+            /tmp/admin-project-source.tar.gz \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/"
 
-      - name: Deploy image
+      - name: Build and deploy on server
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
@@ -53,8 +65,11 @@ jobs:
           ssh \
             -i ~/.ssh/deploy_key \
             -p "${DEPLOY_PORT:-22}" \
+            -o ConnectTimeout=30 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=20 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "chmod +x /tmp/admin-project-deploy-source.sh && /tmp/admin-project-deploy-source.sh 'https://github.com/huofeibo/admin-project.git' '$DEPLOY_REVISION'"
+            "chmod +x /tmp/deploy-source.sh && /tmp/deploy-source.sh '/tmp/admin-project-source.tar.gz' '$DEPLOY_REVISION'"
 
       - name: Verify public routes
         run: |

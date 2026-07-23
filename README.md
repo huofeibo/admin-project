@@ -111,7 +111,10 @@ admin-project/
 │   ├── assets/          # 项目截图
 │   └── demos/           # 独立交互原型
 ├── services/api/        # 演示后端服务
-├── scripts/deploy.sh    # 服务器一键更新脚本
+├── scripts/
+│   ├── deploy-source.sh # Actions 源码归档部署入口
+│   ├── deploy-image.sh  # 容器健康检查与失败回滚
+│   └── deploy.sh        # 服务器 Git 工作区备用更新脚本
 ├── Dockerfile
 ├── compose.yaml
 └── src/                 # React 展示站源码
@@ -141,11 +144,11 @@ Internet :443
 
 ### 首次迁移到 Docker
 
-服务器要求 Docker Engine、Compose plugin 和 Git。Ubuntu 24.04 可先安装发行版软件包：
+服务器要求 Docker Engine 和 Compose plugin。GitHub Actions 使用源码归档发布，因此服务器不依赖 GitHub 克隆。Ubuntu 24.04 可先安装发行版软件包：
 
 ```bash
 sudo apt update
-sudo apt install -y docker.io docker-compose-v2 git
+sudo apt install -y docker.io docker-compose-v2
 sudo systemctl enable --now docker
 sudo usermod -aG docker ubuntu
 ```
@@ -157,16 +160,7 @@ docker version
 docker compose version
 ```
 
-代码首次部署：
-
-```bash
-sudo mkdir -p /opt/admin-project
-sudo chown ubuntu:ubuntu /opt/admin-project
-git clone https://github.com/huofeibo/admin-project.git /opt/admin-project
-cd /opt/admin-project
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh
-```
+首次容器构建和启动由 GitHub Actions 完成，版本源码保存在 `/home/ubuntu/apps/admin-project/releases/<commit>`，成功版本由 `/home/ubuntu/apps/admin-project/current` 指向。无需预先在服务器克隆仓库。
 
 确认容器健康后，将 `deploy/nginx-host.conf.example` 复制到宿主机 Nginx 配置目录，执行：
 
@@ -189,8 +183,8 @@ sudo systemctl reload nginx
 流水线会自动完成：
 
 ```text
-检出流水线代码 -> SSH 连接腾讯云
--> 服务器拉取指定 Git 提交 -> Docker 构建 -> 更新容器 -> 健康检查
+检出流水线代码 -> 打包当前 Git 提交 -> 上传轻量源码包 -> SSH 连接腾讯云
+-> 服务器解压到独立版本目录 -> Docker 构建 -> 更新容器 -> 健康检查
 -> 失败自动回滚旧镜像 -> 验证公网路由
 ```
 
@@ -224,31 +218,32 @@ ssh-keyscan -H -p 22 82.157.121.102
 
 将输出整行写入 `DEPLOY_KNOWN_HOSTS`。首次流水线运行成功后，再用 `deploy/nginx-host.conf.example` 完成一次宿主机 Nginx 反向代理切换。此后发布不再登录服务器。
 
-流水线只传输轻量部署脚本，服务器从公开 GitHub 仓库拉取指定提交并本地构建，避免国内服务器拉取 GHCR 镜像或接收 GitHub Runner 大文件时链路不稳定。镜像仍使用 Git 提交号作为不可变版本标签。
+流水线通过 `git archive` 只打包当前提交中已跟踪的源码，归档不包含 `.git`、`node_modules`、`dist`、本地环境文件和证书。当前源码包约 243 KB，由服务器解压并本地构建，避开服务器克隆 GitHub、拉取 GHCR 镜像和传输大型镜像归档时的不稳定链路。镜像仍使用 Git 提交号作为不可变版本标签。
 
 ### 服务器命令行备用发布
 
-当 GitHub Actions 暂时不可用时，可在服务器仓库中执行：
+当 GitHub Actions 暂时不可用时，可在本地仓库生成同样的轻量源码包并上传：
 
 ```bash
-cd /opt/admin-project
-./scripts/deploy.sh
+git archive --format=tar.gz --output=/tmp/admin-project-source.tar.gz HEAD
+scp scripts/deploy-source.sh /tmp/admin-project-source.tar.gz ubuntu@82.157.121.102:/tmp/
+ssh ubuntu@82.157.121.102 \
+  "chmod +x /tmp/deploy-source.sh && /tmp/deploy-source.sh /tmp/admin-project-source.tar.gz $(git rev-parse HEAD)"
 ```
 
-该脚本会检查服务器工作区、快进拉取、在服务器构建镜像并等待健康状态。它是应急方式，不是日常发布入口。
+该方式与 Actions 使用相同的解压、构建、健康检查和回滚脚本，仅作为应急方式，不是日常发布入口。
 
 查看运行状态和日志：
 
 ```bash
-docker compose ps
-docker compose logs --tail=100 web
+docker ps --filter name=admin-project-web
+docker logs --tail=100 admin-project-web
 ```
 
-回滚时切到已验证的 Git 提交，再重新构建：
+流水线部署失败会自动恢复替换前的镜像。需要人工指定旧版本时，使用服务器已有的提交镜像标签：
 
 ```bash
-git switch --detach <已验证提交号>
-docker compose up --detach --build
+/home/ubuntu/apps/admin-project/current/scripts/deploy-image.sh admin-project:<已验证提交号>
 ```
 
 演示 API 默认不加入生产 Compose。物迹与时序的正式 API 应在各自仓库中实现鉴权、持久化、审计、备份和监控后独立部署。
@@ -265,7 +260,7 @@ docker compose up --detach --build
 - [x] 提供 Docker/Compose 和一键部署脚本
 - [x] 提供 GitHub Actions 手动发布流水线和失败回滚
 - [ ] 将线上站点从手工静态目录迁移到 Docker 容器
-- [ ] 配置 GitHub production 环境、Actions Secrets 和专用部署密钥
+- [x] 配置 GitHub production 环境、Actions Secrets 和专用部署密钥
 - [ ] 接入各项目正式发布版本
 
 ## 仓库
