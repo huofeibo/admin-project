@@ -160,6 +160,16 @@ docker version
 docker compose version
 ```
 
+腾讯云服务器无法稳定访问 Docker Hub 时，可安装仓库中的腾讯云官方镜像加速配置：
+
+```bash
+sudo install -m 644 deploy/docker-daemon.json.example /etc/docker/daemon.json
+sudo systemctl restart docker
+docker info --format '{{json .RegistryConfig.Mirrors}}'
+```
+
+修改已有 `/etc/docker/daemon.json` 前应先合并其中其他配置，不要直接覆盖。本项目服务器首次配置时该文件不存在，已直接使用此示例。
+
 首次容器构建和启动由 GitHub Actions 完成，版本源码保存在 `/home/ubuntu/apps/admin-project/releases/<commit>`，成功版本由 `/home/ubuntu/apps/admin-project/current` 指向。无需预先在服务器克隆仓库。
 
 确认容器健康后，将 `deploy/nginx-host.conf.example` 复制到宿主机 Nginx 配置目录，执行：
