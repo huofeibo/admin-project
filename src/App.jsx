@@ -6,7 +6,7 @@ import {
   Layers3, Menu, PackagePlus, Plus, QrCode, Search, Server, ShieldCheck,
   Smartphone, Sparkles, Store, Timer, Trash2, Wrench, X
 } from 'lucide-react';
-import { Reveal, ScrollStack, SplitTitle, SpotlightSurface, TiltSurface } from './PortfolioMotion.jsx';
+import { Reveal, ScrollStack, SplitTitle, SpotlightSurface } from './PortfolioMotion.jsx';
 import focusPlanDesktopImage from './assets/focus-plan-concept-desktop.png';
 import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
@@ -31,6 +31,33 @@ function Brand({ compact = false }) {
 
 function ArrowLink({ href, children, light = false, ...props }) {
   return <a className={`arrow-link ${light ? 'light' : ''}`} href={href} {...props}>{children}<ArrowRight size={17} /></a>;
+}
+
+function DeviceShowcase({ className, desktopSrc, desktopAlt, desktopLabel, phoneSrc, phoneAlt, phoneLabel }) {
+  const [activeDevice, setActiveDevice] = useState('');
+
+  function activateDevice(device, event) {
+    if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    setActiveDevice(device);
+  }
+
+  return (
+    <div
+      className={`case-visual ${className} ${activeDevice ? `is-device-active device-focus-${activeDevice}` : ''}`.trim()}
+      onPointerLeave={() => setActiveDevice('')}
+    >
+      <div className="device-plane device-plane-web">
+        <img className="desktop-capture" src={desktopSrc} alt={desktopAlt} />
+        <span className="visual-note device-note-web">{desktopLabel}</span>
+      </div>
+      <div className="device-plane device-plane-phone">
+        <img className="phone-capture" src={phoneSrc} alt={phoneAlt} />
+        <span className="visual-note device-note-phone">{phoneLabel}</span>
+      </div>
+      <span className="device-hotspot device-hotspot-web" aria-hidden="true" onPointerEnter={(event) => activateDevice('web', event)} onPointerDown={(event) => activateDevice('web', event)} />
+      <span className="device-hotspot device-hotspot-phone" aria-hidden="true" onPointerEnter={(event) => activateDevice('phone', event)} onPointerDown={(event) => activateDevice('phone', event)} />
+    </div>
+  );
 }
 
 function Portfolio() {
@@ -109,15 +136,15 @@ function Portfolio() {
                   <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web Admin</span><span><Cloud size={17} />Cloud API</span></div>
                   <div className="case-links"><ArrowLink href="/wuji">打开产品主页</ArrowLink><ArrowLink href="https://github.com/huofeibo/asset-keeper" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
                 </div>
-                <TiltSurface className="case-visual wuji-visual">
-                  <div className="device-plane device-plane-web">
-                    <img className="desktop-capture" src="/assets/wuji-business-desktop.png" alt="物迹商户版 Web 管理端" />
-                  </div>
-                  <div className="device-plane device-plane-phone">
-                    <img className="phone-capture" src="/assets/wuji-family-mobile.png" alt="物迹家庭版 HarmonyOS 原型" />
-                  </div>
-                  <span className="visual-note note-top">MERCHANT / WEB</span><span className="visual-note note-bottom">FAMILY / HARMONYOS</span>
-                </TiltSurface>
+                <DeviceShowcase
+                  className="wuji-visual"
+                  desktopSrc="/assets/wuji-business-desktop.png"
+                  desktopAlt="物迹商户版 Web 管理端"
+                  desktopLabel="MERCHANT / WEB"
+                  phoneSrc="/assets/wuji-family-mobile.png"
+                  phoneAlt="物迹家庭版 HarmonyOS 原型"
+                  phoneLabel="FAMILY / HARMONYOS"
+                />
               </div>
             </article>
 
@@ -131,15 +158,15 @@ function Portfolio() {
                   <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web App</span><span><Cloud size={17} />Cloud API</span></div>
                   <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看 UI 概念图</ArrowLink><ArrowLink href="https://github.com/huofeibo/focus-plan" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
                 </div>
-                <TiltSurface className="case-visual shixu-visual">
-                  <div className="device-plane device-plane-web">
-                    <img className="desktop-capture" src={focusPlanDesktopImage} alt="时序 Web 学习工作台" />
-                  </div>
-                  <div className="device-plane device-plane-phone">
-                    <img className="phone-capture" src={focusPlanMobileImage} alt="时序 HarmonyOS 移动端原型" />
-                  </div>
-                  <span className="visual-note note-top">PLAN / WEB</span><span className="visual-note note-bottom">FOCUS / HARMONYOS</span>
-                </TiltSurface>
+                <DeviceShowcase
+                  className="shixu-visual"
+                  desktopSrc={focusPlanDesktopImage}
+                  desktopAlt="时序 Web 学习工作台"
+                  desktopLabel="PLAN / WEB"
+                  phoneSrc={focusPlanMobileImage}
+                  phoneAlt="时序 HarmonyOS 移动端原型"
+                  phoneLabel="FOCUS / HARMONYOS"
+                />
               </div>
             </article>
           </ScrollStack>
