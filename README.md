@@ -12,7 +12,7 @@
 | `/wuji` | 物迹家庭版/商户版产品主页 |
 | `/wuji/family-app` | 物迹家庭版 HarmonyOS 风格交互原型 |
 | `/demos/asset-keeper.html` | 物迹商户版 Web/HarmonyOS 响应式原型 |
-| `/demos/focus-plan.html` | 时序 Web/HarmonyOS 响应式原型 |
+| `/demos/focus-plan.html` | 时序最新 Web UI 概念与响应式交互预览 |
 | `http://localhost:8787/api/health` | 仅本地开发使用的演示 API 健康检查 |
 
 ## 项目仓库
@@ -80,6 +80,12 @@ cp .env.example .env
 
 ```text
 VITE_DEMO_API_BASE_URL=http://localhost:8787
+```
+
+`VITE_FOCUS_PLAN_URL` 默认为空，此时时序入口打开仓库内的最新 UI 概念稿。正式项目上线后，将它设置为真实项目地址并重新构建，作品集中的两个时序入口会自动切换：
+
+```text
+VITE_FOCUS_PLAN_URL=https://focus.example.com
 ```
 
 ## Docker

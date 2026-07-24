@@ -9,6 +9,7 @@ import {
 import { Reveal, ScrollStack, SplitTitle, SpotlightSurface, TiltSurface } from './PortfolioMotion.jsx';
 
 const API_BASE = (import.meta.env.VITE_DEMO_API_BASE_URL || '').replace(/\/+$/, '');
+const FOCUS_PLAN_URL = (import.meta.env.VITE_FOCUS_PLAN_URL || '').trim() || '/demos/focus-plan.html';
 
 const familySeed = [
   { id: 'WF-24018', name: '海尔双门冰箱', room: '厨房', category: '大家电', warranty: '2027.03.12', state: '正常' },
@@ -85,7 +86,7 @@ function Portfolio() {
           </div>
           <div className="hero-project-rail" aria-label="精选项目">
             <a href="/wuji"><span>01</span><strong>物迹</strong><small>资产与维保</small></a>
-            <a href="/demos/focus-plan.html"><span>02</span><strong>时序</strong><small>计划与专注</small></a>
+            <a href={FOCUS_PLAN_URL}><span>02</span><strong>时序</strong><small>计划与专注</small></a>
           </div>
           <a className="hero-scroll-cue" href="#projects">
             <span>SCROLL TO EXPLORE</span><i aria-hidden="true" />
@@ -122,7 +123,7 @@ function Portfolio() {
                   <h3>把阶段目标，变成今天真正能够开始的一段时间。</h3>
                   <p>将计划编排、任务执行、专注计时和周期复盘连接起来。Web 负责大屏规划，HarmonyOS 负责随时执行与多设备适配。</p>
                   <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web App</span><span><Cloud size={17} />Cloud API</span></div>
-                  <div className="case-links"><ArrowLink href="/demos/focus-plan.html">体验交互原型</ArrowLink><ArrowLink href="https://github.com/huofeibo/focus-plan" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
+                  <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看 UI 概念图</ArrowLink><ArrowLink href="https://github.com/huofeibo/focus-plan" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
                 </div>
                 <TiltSurface className="case-visual shixu-visual">
                   <img className="desktop-capture" src="/assets/shixu-desktop.png" alt="时序 Web 学习工作台" />

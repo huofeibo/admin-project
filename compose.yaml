@@ -4,6 +4,7 @@ services:
       context: .
       args:
         VITE_DEMO_API_BASE_URL: ${VITE_DEMO_API_BASE_URL:-}
+        VITE_FOCUS_PLAN_URL: ${VITE_FOCUS_PLAN_URL:-}
     image: admin-project:${IMAGE_TAG:-local}
     container_name: admin-project-web
     restart: unless-stopped

@@ -3,294 +3,1247 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>时序 - 学习计划与专注助手</title>
+  <title>时序 Focus Plan - Web 概念界面</title>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <script src="https://unpkg.com/@antv/g6@5/dist/g6.min.js"></script>
   <style>
     :root {
-      --bg: #f5f6f4; --surface: #fff; --soft: #eef3ed; --ink: #202722; --muted: #6f786f;
-      --line: #dfe5df; --green: #397254; --green-dark: #28543d; --yellow: #d7a23a;
-      --blue: #4d6d91; --red: #b34d47; --radius: 8px; --shadow: 0 12px 32px rgba(35, 48, 38, .1);
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    .app { min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr); }
-    .sidebar { padding: 24px 16px; background: #26362e; color: #edf4ef; display: flex; flex-direction: column; gap: 28px; }
-    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
-    .brand-mark { width: 34px; height: 34px; border-radius: 7px; background: #e3bd5a; color: #26362e; display: grid; place-items: center; }
-    .brand strong { font-size: 18px; } .brand small { display: block; color: #aebdb4; margin-top: 2px; }
-    .nav { display: grid; gap: 6px; }
-    .nav button { width: 100%; border: 0; border-radius: 7px; padding: 11px 12px; color: #becac2; background: transparent; display: flex; align-items: center; gap: 11px; text-align: left; }
-    .nav button:hover, .nav button.active { color: #fff; background: #3a5044; }
-    .weekly { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid #405248; font-size: 12px; color: #b6c3bb; }
-    .weekly strong { color: #fff; display: block; font-size: 20px; margin: 5px 0; }
-    .progress { height: 6px; background: #52645a; border-radius: 3px; overflow: hidden; }
-    .progress span { display: block; height: 100%; width: 68%; background: #e3bd5a; }
-    main { min-width: 0; padding: 24px 30px 42px; }
-    .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
-    .topbar h1 { margin: 0; font-size: 24px; } .topbar p { color: var(--muted); margin: 4px 0 0; font-size: 13px; }
-    .top-actions { display: flex; gap: 9px; margin-left: auto; }
-    .btn { min-height: 38px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn:hover { border-color: #aeb9b0; } .btn.primary { color: #fff; border-color: var(--green); background: var(--green); } .btn.primary:hover { background: var(--green-dark); }
-    .icon-btn { width: 38px; padding: 0; } .view { display: none; } .view.active { display: block; }
-    .date-strip { display: grid; grid-template-columns: repeat(7, minmax(62px, 1fr)); gap: 8px; margin-bottom: 18px; }
-    .date-btn { min-height: 68px; border: 1px solid var(--line); background: var(--surface); border-radius: 7px; color: var(--muted); display: grid; place-items: center; align-content: center; gap: 4px; }
-    .date-btn strong { font-size: 18px; color: var(--ink); } .date-btn.active { border-color: var(--green); background: var(--soft); color: var(--green); } .date-btn.active strong { color: var(--green-dark); }
-    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
-    .metric { min-height: 108px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px; }
-    .metric-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
-    .metric-icon { width: 30px; height: 30px; border-radius: 6px; background: var(--soft); color: var(--green); display: grid; place-items: center; }
-    .metric strong { display: block; font-size: 26px; margin: 7px 0 2px; } .metric small { color: var(--muted); }
-    .today-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(290px, .75fr); gap: 18px; }
-    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 18px; }
-    .panel + .panel { margin-top: 16px; } .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 13px; }
-    .panel h2 { margin: 0; font-size: 16px; } .muted { color: var(--muted); font-size: 12px; }
-    .task-list { display: grid; gap: 6px; }
-    .task { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 26px; align-items: center; gap: 10px; padding: 11px 8px; border-radius: 6px; border: 1px solid transparent; }
-    .task:hover { background: #f7f9f6; border-color: #edf0ed; } .task.dragging { opacity: .45; }
-    .task input { width: 18px; height: 18px; accent-color: var(--green); }
-    .task-title { font-weight: 600; font-size: 14px; } .task.done .task-title { text-decoration: line-through; color: var(--muted); }
-    .task-meta { margin-top: 4px; color: var(--muted); font-size: 12px; display: flex; gap: 9px; flex-wrap: wrap; }
-    .tag { color: var(--green-dark); background: var(--soft); border-radius: 999px; padding: 3px 7px; font-size: 11px; white-space: nowrap; }
-    .tag.blue { color: #405d7e; background: #ebf0f5; } .tag.yellow { color: #8b631a; background: #fbf2dc; }
-    .drag { color: #a7afa8; cursor: grab; display: grid; place-items: center; border: 0; background: transparent; padding: 3px; }
-    .next-block { display: flex; gap: 12px; align-items: center; padding: 13px; background: var(--soft); border-radius: 7px; }
-    .next-time { width: 52px; flex: none; text-align: center; color: var(--green-dark); font-weight: 700; }
-    .focus-card { text-align: center; padding: 22px 16px; }
-    .timer-ring { width: 174px; height: 174px; margin: 10px auto 18px; border: 10px solid #dfe7e0; border-top-color: var(--green); border-right-color: var(--green); border-radius: 50%; display: grid; place-items: center; }
-    .timer-ring strong { font-size: 38px; font-variant-numeric: tabular-nums; } .timer-ring span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
-    .timer-actions { display: flex; justify-content: center; gap: 9px; }
-    .segment { display: inline-grid; grid-auto-flow: column; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: #f2f4f1; }
-    .segment button { border: 0; background: transparent; color: var(--muted); padding: 7px 12px; border-radius: 5px; }
-    .segment button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(32,39,34,.1); }
-    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; margin-bottom: 16px; }
-    .section-head h2 { margin: 0; font-size: 20px; } .section-head p { color: var(--muted); margin: 5px 0 0; font-size: 13px; }
-    .plan-board { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 14px; overflow-x: auto; }
-    .plan-column { min-width: 220px; border-top: 3px solid var(--blue); padding-top: 12px; } .plan-column:nth-child(2) { border-color: var(--green); } .plan-column:nth-child(3) { border-color: var(--yellow); }
-    .plan-column h3 { font-size: 14px; margin: 0 0 10px; } .plan-item { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 13px; margin-bottom: 9px; }
-    .plan-item strong { font-size: 13px; } .plan-item p { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
-    .full-focus { max-width: 680px; margin: 0 auto; } .full-focus .timer-ring { width: 250px; height: 250px; border-width: 13px; } .full-focus .timer-ring strong { font-size: 56px; }
-    .focus-task { padding: 14px; margin: 0 auto 18px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); display: flex; justify-content: space-between; gap: 12px; }
-    .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .bar-list { display: grid; gap: 13px; } .bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-    .bar-track { height: 8px; background: #e8ece8; border-radius: 4px; overflow: hidden; } .bar-fill { height: 100%; background: var(--green); border-radius: 4px; }
-    .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; } .day { aspect-ratio: 1; background: #edf0ed; border-radius: 4px; }
-    .day.l1 { background: #cbdccf; } .day.l2 { background: #8fb49b; } .day.l3 { background: #4d8060; }
-    dialog { border: 0; border-radius: 8px; padding: 0; width: min(520px, calc(100% - 28px)); box-shadow: var(--shadow); color: var(--ink); } dialog::backdrop { background: rgba(29,41,33,.46); }
-    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 20px; border-bottom: 1px solid var(--line); } .dialog-head h2 { margin: 0; font-size: 18px; }
-    .dialog-body { padding: 18px 20px; } .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; } .field { display: grid; gap: 6px; } .field.full { grid-column: 1 / -1; }
-    .field label { color: var(--muted); font-size: 12px; } .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 10px; background: #fff; color: var(--ink); }
-    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 14px 20px; border-top: 1px solid var(--line); }
-    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 50; padding: 11px 15px; color: #fff; background: #26362e; border-radius: 7px; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s; }
-    .toast.show { opacity: 1; transform: translateY(0); } .mobile-nav { display: none; }
-    @media (max-width: 900px) { .app { grid-template-columns: 76px minmax(0,1fr); } .sidebar { padding: 20px 10px; } .brand-text, .nav span, .weekly { display: none; } .brand, .nav button { justify-content: center; } main { padding: 22px 20px 36px; } .today-grid, .review-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 680px) { .app { display: block; } .sidebar { display: none; } main { padding: 18px 14px 88px; } .topbar { align-items: flex-start; flex-wrap: wrap; } .topbar h1 { font-size: 21px; } .top-actions { width: 100%; margin-left: 0; } .top-actions .btn.primary { flex: 1; } .date-strip { overflow-x: auto; grid-template-columns: repeat(7, 64px); } .metrics { grid-template-columns: 1fr 1fr; } .metric:last-child { grid-column: 1 / -1; } .task { grid-template-columns: 24px minmax(0,1fr) 26px; } .task > .tag { display: none; } .form-grid { grid-template-columns: 1fr; } .field.full { grid-column: auto; } .mobile-nav { position: fixed; display: grid; grid-template-columns: repeat(4, 1fr); left: 0; right: 0; bottom: 0; z-index: 30; padding: 8px 6px max(8px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; } .mobile-nav button { border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; gap: 3px; font-size: 10px; } .mobile-nav button.active { color: var(--green); } .full-focus .timer-ring { width: 210px; height: 210px; } }
-
-    /* Product Design refresh: daily rhythm first, quiet focus second. */
-    :root {
-      --bg: #f7f7fb;
+      --bg: #f5f7f5;
       --surface: #ffffff;
-      --soft: #eceefa;
-      --ink: #252936;
-      --muted: #707585;
-      --line: #e0e2eb;
-      --green: #5965c8;
-      --green-dark: #454fa8;
-      --yellow: #dcb64c;
-      --blue: #4f7e9d;
-      --red: #c65b54;
-      --shadow: 0 16px 44px rgba(52, 58, 118, .14);
+      --surface-soft: #eef2ef;
+      --ink: #23312b;
+      --muted: #6e7a75;
+      --line: #dce3df;
+      --indigo: #6474b9;
+      --indigo-deep: #4e5e9d;
+      --indigo-soft: #eef0fb;
+      --amber: #d8ad57;
+      --amber-soft: #fff4dc;
+      --green: #4f8b72;
+      --green-soft: #eaf5ef;
+      --coral: #c7786f;
+      --blue: #6793a6;
+      --focus-surface: #e7f0f2;
+      --focus-strong: #4f7184;
+      --focus-muted: #617780;
+      --shadow: 0 18px 50px rgba(25, 37, 31, 0.08);
+      --radius: 8px;
+      --rail: 82px;
     }
-    body { background: var(--bg); }
-    .app { grid-template-columns: 208px minmax(0, 1fr); }
-    .sidebar { background: #303550; padding: 30px 14px 22px; gap: 34px; border-right: 1px solid #3d4363; }
-    .brand { padding: 0 10px; }
-    .brand-mark { width: 38px; height: 38px; background: #e1bd5d; color: #303550; }
-    .brand strong { font-size: 20px; }
-    .brand small { color: #c0c3d2; }
-    .nav { gap: 5px; }
-    .nav button { min-height: 44px; padding: 11px 13px; color: #c2c5d5; }
-    .nav button:hover { background: #414768; }
-    .nav button.active { background: #f4f4fa; color: #303550; font-weight: 700; }
-    .weekly { border-top-color: #464c6c; color: #b8bbcb; padding: 18px 10px 0; }
-    .weekly strong { font-size: 19px; }
-    .progress { background: #555a78; }
-    .progress span { background: #e1bd5d; }
-    main { padding: 32px 40px 48px; }
-    .topbar { margin-bottom: 26px; }
-    .topbar h1 { font-size: 27px; line-height: 1.2; }
-    .topbar p { margin-top: 7px; }
-    .top-actions { gap: 8px; }
-    .btn { min-height: 42px; font-weight: 600; }
-    .btn.primary { box-shadow: 0 5px 14px rgba(89, 101, 200, .22); }
-    .icon-btn { width: 42px; }
-    .date-strip { grid-template-columns: repeat(7, minmax(70px, 1fr)); gap: 4px; padding: 7px; margin-bottom: 18px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
-    .date-btn { min-height: 66px; border-color: transparent; background: transparent; }
-    .date-btn:hover { background: #f1f2f8; }
-    .date-btn.active { background: #5965c8; border-color: #5965c8; color: #f0f1ff; }
-    .date-btn.active strong { color: #fff; }
-    .metrics { grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .metric { min-height: 126px; padding: 19px; border-color: var(--line); }
-    .metric strong { font-size: 29px; margin-top: 12px; }
-    .metric:first-child { background: #4b56ad; border-color: #4b56ad; color: #fff; }
-    .metric:first-child .metric-head, .metric:first-child small { color: #dedff5; }
-    .metric:first-child .metric-icon { background: #626dc2; color: #f2ce75; }
-    .today-grid { grid-template-columns: minmax(0, 1.55fr) minmax(300px, .7fr); gap: 16px; }
-    .panel { border-color: var(--line); padding: 20px; }
-    .panel h2 { font-size: 17px; }
-    .panel-head { margin-bottom: 16px; }
-    .task-list { gap: 0; }
-    .task { min-height: 70px; padding: 12px 6px; border-bottom: 1px solid #edf0ed; border-radius: 0; }
-    .task:last-child { border-bottom: 0; }
-    .task:hover { background: #f4f4fa; border-color: #ededf3; }
-    .task-title { font-size: 14px; }
-    .tag { background: #eceefa; color: #4b55ac; }
-    .tag.blue { background: #e9eef3; color: #3f5e78; }
-    .tag.yellow { background: #f8efd9; color: #815d18; }
-    .next-block { min-height: 78px; background: #eef0fa; }
-    .focus-card { background: #f1f2f8; }
-    .timer-ring { width: 184px; height: 184px; border-width: 9px; border-color: #dfe1ec; border-top-color: #5965c8; border-right-color: #5965c8; }
-    .task input { accent-color: #2f7b5b; }
-    .timer-ring strong { font-size: 40px; }
-    .segment { background: #ebefeb; }
-    .segment button { min-width: 48px; }
-    .section-head { margin-bottom: 20px; }
-    .section-head h2 { font-size: 22px; }
-    .plan-board { gap: 16px; }
-    .plan-column { border-top-width: 4px; padding-top: 15px; }
-    .plan-column h3 { margin-bottom: 12px; font-size: 15px; }
-    .plan-item { padding: 15px; border-color: var(--line); }
-    .plan-item strong { font-size: 14px; }
-    .full-focus { max-width: 720px; }
-    .full-focus .timer-ring { width: 260px; height: 260px; }
-    .focus-task { padding: 16px; border-color: var(--line); }
-    .review-grid { gap: 16px; }
-    dialog { box-shadow: var(--shadow); }
-    @media (max-width: 900px) {
-      .app { grid-template-columns: 72px minmax(0,1fr); }
-      main { padding: 28px 24px 40px; }
-      .today-grid, .review-grid { grid-template-columns: 1fr; }
-      .metrics { grid-template-columns: 1fr 1fr; }
-      .metric:first-child { grid-column: 1 / -1; }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      letter-spacing: 0;
     }
-    @media (max-width: 680px) {
-      main { padding: 22px 16px 92px; }
-      .topbar { margin-bottom: 22px; }
-      .topbar h1 { font-size: 24px; }
-      .top-actions { gap: 7px; }
-      .date-strip { grid-template-columns: repeat(7, 66px); gap: 3px; padding: 6px; }
-      .date-btn { min-height: 62px; }
-      .metrics { gap: 10px; }
-      .metric:last-child { grid-column: auto; }
-      .metric { min-height: 122px; padding: 17px; }
-      .metric:first-child { min-height: 112px; }
-      .today-grid { gap: 14px; }
-      .panel { padding: 17px; }
-      .task { min-height: 68px; padding-left: 3px; padding-right: 3px; }
-      .focus-card { background: #f2f2f8; }
-      .full-focus .timer-ring { width: 220px; height: 220px; }
-      .mobile-nav { padding-top: 9px; background: rgba(255,255,255,.98); }
-      .mobile-nav button { min-height: 48px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(85, 91, 170, 0.22);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--rail) minmax(0, 1fr);
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 20;
+      padding: 22px 12px 18px;
+      background: #202a25;
+      color: #f7f8f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid #303a35;
+    }
+    .brand {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--amber);
+      color: #202a25;
+      font-weight: 900;
+      font-size: 20px;
+      box-shadow: 0 8px 20px rgba(229, 173, 67, 0.18);
+    }
+    .rail-nav { display: grid; gap: 8px; width: 100%; margin-top: 42px; }
+    .rail-button {
+      position: relative;
+      width: 56px;
+      height: 52px;
+      margin: 0 auto;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: #aeb9b3;
+      display: grid;
+      place-items: center;
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+    .rail-button:hover { color: #fff; background: #303b35; transform: translateY(-1px); }
+    .rail-button.active { color: #202a25; background: #f7f8f5; }
+    .rail-button.active::before {
+      content: "";
+      position: absolute;
+      left: -13px;
+      width: 3px;
+      height: 24px;
+      background: var(--amber);
+      border-radius: 0 3px 3px 0;
+    }
+    .rail-button .tip {
+      position: absolute;
+      left: 64px;
+      padding: 6px 8px;
+      border-radius: 5px;
+      background: #17211c;
+      color: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-4px);
+      transition: 150ms ease;
+    }
+    .rail-button:hover .tip { opacity: 1; transform: translateX(0); }
+    .rail-footer { margin-top: auto; display: grid; gap: 12px; }
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #d9ddd7;
+      color: #26322c;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .workspace { min-width: 0; padding: 24px clamp(20px, 3vw, 46px) 46px; }
+    .topbar {
+      min-height: 58px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+    .eyebrow { color: var(--muted); font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+    h1 { margin: 0; font-size: 27px; line-height: 1.15; font-weight: 820; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 9px; }
+    .sync-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    .sync-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+    .button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 13px;
+      background: var(--surface);
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+      transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+    .button:hover { transform: translateY(-1px); border-color: #b8beb9; box-shadow: 0 8px 20px rgba(26, 37, 31, 0.08); }
+    .button.primary { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+    .button.primary:hover { background: var(--indigo-deep); border-color: var(--indigo-deep); }
+    .button.icon { width: 40px; padding: 0; }
+    .button.ghost { background: transparent; border-color: transparent; color: var(--muted); box-shadow: none; }
+    .button.small { min-height: 34px; padding: 6px 10px; font-size: 12px; }
+
+    .view { display: none; animation: view-in 220ms ease both; }
+    .view.active { display: block; }
+    @keyframes view-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .today-layout {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-rows: auto auto auto;
+      gap: 14px;
+    }
+    .focus-anchor {
+      grid-column: 1 / span 5;
+      grid-row: 1 / span 2;
+      min-height: 450px;
+      padding: 26px;
+      border-radius: var(--radius);
+      background: var(--focus-surface);
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .anchor-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .anchor-label { display: flex; align-items: center; gap: 9px; color: var(--focus-muted); font-size: 12px; font-weight: 700; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--focus-strong); box-shadow: 0 0 0 5px rgba(79, 113, 132, 0.12); }
+    .timer-mode { color: var(--focus-muted); font-size: 12px; }
+    .focus-topic { margin-top: 45px; max-width: 420px; }
+    .focus-topic small { color: var(--focus-muted); font-size: 12px; }
+    .focus-topic h2 { margin: 8px 0 9px; font-size: clamp(24px, 3vw, 35px); line-height: 1.2; font-weight: 780; }
+    .focus-topic p { margin: 0; color: #5b7079; line-height: 1.65; font-size: 13px; }
+    .timer-display {
+      margin: auto 0 22px;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+    }
+    .timer-value { font-size: clamp(58px, 7vw, 86px); line-height: 0.9; font-weight: 780; font-variant-numeric: tabular-nums; }
+    .timer-meta { padding-bottom: 7px; color: var(--focus-muted); font-size: 12px; line-height: 1.6; }
+    .timer-progress { height: 5px; background: #c7d9dd; overflow: hidden; margin-bottom: 22px; }
+    .timer-progress span { display: block; width: 36%; height: 100%; background: var(--focus-strong); transition: width 500ms linear; }
+    .focus-actions { display: flex; gap: 9px; }
+    .focus-actions .button { border-color: #c3d5da; background: rgba(255, 255, 255, 0.72); color: var(--focus-strong); }
+    .focus-actions .button.timer-toggle { flex: 1; background: var(--focus-strong); border-color: var(--focus-strong); color: #fff; }
+
+    .task-stream {
+      grid-column: 6 / -1;
+      grid-row: 1;
+      min-height: 278px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .section-head {
+      min-height: 63px;
+      padding: 15px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .section-head h2 { margin: 0; font-size: 16px; }
+    .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .task-row {
+      min-height: 68px;
+      padding: 11px 16px;
+      display: grid;
+      grid-template-columns: 54px 22px minmax(0, 1fr) auto 24px;
+      align-items: center;
+      gap: 11px;
+      border-bottom: 1px solid #ecefeb;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .task-row:last-child { border-bottom: 0; }
+    .task-row:hover { background: #f7faf8; }
+    .task-row.current { background: #f1f6f7; box-shadow: inset 3px 0 0 var(--focus-strong); }
+    .task-row.dragging { opacity: 0.45; transform: scale(0.99); }
+    .task-time { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .check {
+      width: 19px;
+      height: 19px;
+      border: 1.5px solid #aab1ac;
+      border-radius: 5px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      padding: 0;
+    }
+    .task-row.done .check { background: var(--green); border-color: var(--green); }
+    .task-copy strong { display: block; font-size: 13px; }
+    .task-copy span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .task-row.done .task-copy strong { color: #8b938e; text-decoration: line-through; }
+    .tag { padding: 5px 8px; border-radius: 5px; background: var(--indigo-soft); color: #4e5c98; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .tag.amber { background: var(--amber-soft); color: #80631f; }
+    .tag.blue { background: #e9f3f5; color: #3f7078; }
+    .drag-handle { border: 0; background: transparent; color: #a3aaa5; padding: 2px; cursor: grab; }
+
+    .day-rhythm {
+      grid-column: 6 / -1;
+      grid-row: 2;
+      min-height: 158px;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: #eef1f8;
+      display: grid;
+      grid-template-columns: minmax(170px, 0.8fr) minmax(0, 1.7fr);
+      gap: 22px;
+      align-items: center;
+    }
+    .rhythm-copy h2 { margin: 0 0 7px; font-size: 17px; }
+    .rhythm-copy p { margin: 0; color: #62677c; line-height: 1.55; font-size: 12px; }
+    .rhythm-copy strong { display: block; margin-top: 16px; font-size: 24px; color: var(--indigo-deep); }
+    .timeline { height: 92px; display: grid; grid-template-columns: repeat(10, 1fr); align-items: end; gap: 5px; border-bottom: 1px solid #b9bdd4; }
+    .timeline-bar { position: relative; min-height: 8px; background: #c9ccdc; border-radius: 3px 3px 0 0; transition: height 180ms ease, background 180ms ease; }
+    .timeline-bar:hover { background: var(--indigo); height: calc(var(--h) + 8px) !important; }
+    .timeline-bar.active { background: var(--indigo); }
+    .timeline-bar::after { content: attr(data-time); position: absolute; left: 50%; bottom: -19px; transform: translateX(-50%); color: #73788d; font-size: 9px; }
+
+    .week-flow {
+      grid-column: 1 / span 8;
+      grid-row: 3;
+      min-height: 244px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .week-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 23px; }
+    .week-head h2 { margin: 0; font-size: 17px; }
+    .week-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .segmented { display: inline-grid; grid-auto-flow: column; padding: 3px; background: var(--surface-soft); border-radius: 7px; }
+    .segmented button { min-width: 46px; border: 0; border-radius: 5px; padding: 6px 9px; color: var(--muted); background: transparent; font-size: 11px; }
+    .segmented button.active { color: var(--ink); background: #fff; box-shadow: 0 2px 8px rgba(25, 37, 31, 0.08); }
+    .week-days { display: grid; grid-template-columns: repeat(7, minmax(64px, 1fr)); gap: 7px; }
+    .day-column { min-width: 0; }
+    .day-label { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; margin-bottom: 9px; }
+    .day-label strong { color: var(--ink); font-size: 12px; }
+    .day-column.today .day-label strong { color: var(--indigo); }
+    .day-track { height: 108px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; border-left: 1px solid #e4e7e2; padding-left: 7px; }
+    .block { min-height: 12px; border-radius: 3px; background: #d7dbe9; transition: transform 150ms ease, filter 150ms ease; }
+    .block:hover { transform: translateX(2px); filter: saturate(1.25); }
+    .block.indigo { background: var(--indigo); }
+    .block.amber { background: var(--amber); }
+    .block.green { background: var(--green); }
+    .block.blue { background: var(--blue); }
+
+    .review-pulse {
+      grid-column: 9 / -1;
+      grid-row: 3;
+      min-height: 244px;
+      padding: 19px;
+      border-radius: var(--radius);
+      background: #fbf1df;
+      display: flex;
+      flex-direction: column;
+    }
+    .review-pulse h2 { margin: 0; font-size: 16px; }
+    .review-pulse > p { margin: 6px 0 18px; color: #756755; font-size: 11px; }
+    .pulse-score { display: flex; align-items: baseline; gap: 7px; }
+    .pulse-score strong { font-size: 46px; line-height: 1; }
+    .pulse-score span { color: #756755; font-size: 11px; }
+    .pulse-list { margin-top: auto; display: grid; gap: 9px; }
+    .pulse-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; font-size: 11px; }
+    .pulse-item span { color: #756755; }
+    .pulse-item strong { font-size: 12px; }
+
+    .page-section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .page-toolbar { padding: 16px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
+    .page-toolbar h2 { margin: 0; font-size: 17px; }
+    .page-toolbar .segmented { margin-left: auto; }
+
+    #view-plan .page-section { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+    @media (min-width: 721px) {
+      body.plan-view-active { overflow: hidden; }
+      body.plan-view-active .workspace { height: 100vh; height: 100dvh; padding-bottom: 24px; display: flex; flex-direction: column; }
+      body.plan-view-active .topbar { flex: 0 0 auto; }
+      body.plan-view-active #view-plan { min-height: 0; flex: 1; }
+    }
+    .plan-canvas { display: grid; grid-template-columns: 188px repeat(5, minmax(150px, 1fr)); min-width: 940px; }
+    .plan-sidebar, .plan-day { min-height: 520px; border-right: 1px solid var(--line); }
+    .plan-day:last-child { border-right: 0; }
+    .plan-sidebar { background: #f7f8f5; }
+    .plan-corner, .plan-day-head { height: 76px; padding: 16px; border-bottom: 1px solid var(--line); }
+    .plan-corner strong, .plan-day-head strong { display: block; font-size: 13px; }
+    .plan-corner span, .plan-day-head span { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+    .goal-item { padding: 15px; border-bottom: 1px solid var(--line); }
+    .goal-item b { display: block; font-size: 12px; }
+    .goal-item span { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+    .goal-progress { height: 4px; background: #dde1dc; margin-top: 10px; }
+    .goal-progress i { display: block; height: 100%; background: var(--indigo); }
+    .plan-dropzone { min-height: 444px; padding: 10px; background: linear-gradient(#fff 31px, #f1f3ef 32px); background-size: 100% 32px; }
+    .plan-card { margin-bottom: 8px; padding: 10px; border-left: 3px solid #7788c6; background: #f2f4fc; box-shadow: 0 4px 12px rgba(44, 57, 51, 0.05); font-size: 11px; cursor: grab; }
+    .plan-card.amber { border-color: #d7b467; background: #fff8e9; }
+    .plan-card.green { border-color: #79a1ae; background: #edf5f7; }
+    .plan-card strong { display: block; margin-bottom: 4px; }
+    .plan-card span { color: var(--muted); }
+    .mobile-plan { display: none; }
+    .mobile-goal {
+      padding: 14px;
+      background: #f1f4f4;
+      border-bottom: 1px solid var(--line);
+    }
+    .mobile-goal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .mobile-goal-head strong { font-size: 13px; }
+    .mobile-goal-head span { color: var(--focus-strong); font-size: 11px; font-weight: 800; }
+    .mobile-goal p { margin: 5px 0 10px; color: var(--muted); font-size: 10px; }
+    .mobile-goal .goal-progress { margin: 0; }
+    .date-strip {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(50px, 1fr));
+      gap: 6px;
+      padding: 12px 12px 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .date-strip::-webkit-scrollbar { display: none; }
+    .date-chip {
+      min-width: 50px;
+      min-height: 58px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      padding: 6px;
+    }
+    .date-chip span { font-size: 10px; }
+    .date-chip strong { font-size: 15px; color: var(--ink); }
+    .date-chip.active { background: var(--focus-surface); border-color: #c7d8dd; color: var(--focus-strong); }
+    .date-chip.active strong { color: var(--focus-strong); }
+    .mobile-agenda { padding: 4px 12px 16px; }
+    .mobile-agenda-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; padding: 8px 2px 12px; }
+    .mobile-agenda-head h3 { margin: 0; font-size: 15px; }
+    .mobile-agenda-head span { color: var(--muted); font-size: 10px; }
+    .mobile-plan-list { display: grid; gap: 8px; }
+    .mobile-plan-card {
+      min-height: 72px;
+      padding: 12px;
+      border: 1px solid #e2e8e4;
+      border-left: 3px solid #7788c6;
+      border-radius: 7px;
+      background: #fbfcff;
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 40px;
+      align-items: center;
+      gap: 10px;
+    }
+    .mobile-plan-card[data-tone="amber"] { border-left-color: #d7b467; background: #fffdf8; }
+    .mobile-plan-card[data-tone="green"] { border-left-color: #79a1ae; background: #f8fbfc; }
+    .mobile-plan-time { color: var(--focus-strong); font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .mobile-plan-copy strong { display: block; font-size: 12px; }
+    .mobile-plan-copy span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; }
+    .mobile-empty { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 12px; border: 1px dashed var(--line); border-radius: 7px; }
+
+    .focus-page { display: grid; grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr); gap: 14px; }
+    .focus-stage { min-height: 590px; background: var(--focus-surface); color: var(--ink); padding: 28px; display: flex; flex-direction: column; border-radius: var(--radius); }
+    .duration-options { display: flex; gap: 7px; flex-wrap: wrap; }
+    .duration-options button { border: 1px solid #c3d5da; color: var(--focus-muted); background: rgba(255, 255, 255, 0.58); border-radius: 6px; padding: 7px 10px; }
+    .duration-options button.active { background: var(--focus-strong); border-color: var(--focus-strong); color: #fff; }
+    .focus-stage .timer-value { margin: auto 0 24px; font-size: clamp(76px, 10vw, 120px); }
+    .focus-queue { padding: 22px; }
+    .focus-queue h2 { margin: 0 0 8px; font-size: 18px; }
+    .focus-queue > p { color: var(--muted); margin: 0 0 22px; font-size: 12px; }
+    .queue-item { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .queue-number { color: var(--muted); font-size: 11px; }
+    .queue-item strong { display: block; font-size: 13px; }
+    .queue-item span { display: block; color: var(--muted); font-size: 10px; margin-top: 5px; }
+
+    .review-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr); gap: 14px; }
+    .review-main, .review-side { padding: 22px; }
+    .review-main h2, .review-side h2 { margin: 0; font-size: 17px; }
+    .review-main > p, .review-side > p { color: var(--muted); font-size: 11px; }
+    .review-bars { height: 260px; margin-top: 25px; display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 12px; border-bottom: 1px solid var(--line); }
+    .review-bar { position: relative; min-height: 10px; background: var(--indigo); border-radius: 4px 4px 0 0; }
+    .review-bar:nth-child(2n) { background: var(--blue); }
+    .review-bar::after { content: attr(data-day); position: absolute; bottom: -23px; left: 50%; transform: translateX(-50%); color: var(--muted); font-size: 10px; }
+    .review-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 40px; }
+    .review-stat { padding: 13px; background: #f2f4f0; }
+    .review-stat span { color: var(--muted); font-size: 10px; }
+    .review-stat strong { display: block; font-size: 22px; margin-top: 7px; }
+    .category-list { margin-top: 22px; display: grid; gap: 16px; }
+    .category-head { display: flex; justify-content: space-between; font-size: 11px; }
+    .category-head span { color: var(--muted); }
+    .category-track { height: 7px; margin-top: 7px; background: var(--surface-soft); }
+    .category-track i { display: block; height: 100%; background: var(--indigo); }
+
+    dialog {
+      width: min(520px, calc(100% - 28px));
+      border: 0;
+      border-radius: 8px;
+      padding: 0;
+      color: var(--ink);
+      box-shadow: 0 30px 80px rgba(16, 26, 20, 0.24);
+    }
+    dialog::backdrop { background: rgba(20, 29, 24, 0.48); backdrop-filter: blur(3px); }
+    .dialog-head { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; font-size: 18px; }
+    .dialog-body { padding: 19px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .field { display: grid; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .field input, .field select { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; color: var(--ink); background: #fff; }
+    .dialog-actions { padding: 14px 20px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); }
+    .plan-action-list { padding: 8px; display: grid; gap: 3px; }
+    .plan-action-list button { width: 100%; min-height: 46px; justify-content: flex-start; border-color: transparent; box-shadow: none; }
+    .plan-action-list button:hover { background: #f3f7f5; transform: none; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 80; padding: 11px 14px; border-radius: 7px; background: #202a25; color: #fff; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: 180ms ease; font-size: 12px; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .mobile-nav { display: none; }
+    .mobile-only-copy { display: none; }
+
+    @media (max-width: 1120px) {
+      .focus-anchor { grid-column: 1 / span 6; }
+      .task-stream, .day-rhythm { grid-column: 7 / -1; }
+      .day-rhythm { grid-template-columns: 1fr; gap: 8px; }
+      .timeline { height: 65px; }
+      .week-flow { grid-column: 1 / span 7; }
+      .review-pulse { grid-column: 8 / -1; }
+    }
+    @media (max-width: 860px) {
+      :root { --rail: 70px; }
+      .rail { padding-inline: 7px; }
+      .rail-button { width: 50px; }
+      .workspace { padding: 20px 18px 92px; }
+      .today-layout { grid-template-columns: 1fr 1fr; }
+      .focus-anchor { grid-column: 1 / -1; grid-row: auto; min-height: 390px; }
+      .task-stream { grid-column: 1 / -1; grid-row: auto; }
+      .day-rhythm { grid-column: 1 / -1; grid-row: auto; grid-template-columns: 0.8fr 1.4fr; }
+      .week-flow { grid-column: 1 / -1; grid-row: auto; overflow-x: auto; }
+      .review-pulse { grid-column: 1 / -1; grid-row: auto; }
+      .focus-page, .review-layout { grid-template-columns: 1fr; }
+      .focus-stage { min-height: 470px; }
+    }
+    @media (max-width: 720px) {
+      .app-shell { display: block; }
+      .rail { display: none; }
+      .workspace { padding: 17px 13px 88px; }
+      .topbar { min-height: 72px; margin-bottom: 15px; }
+      h1 { font-size: 23px; }
+      .sync-state, .button-label { display: none; }
+      .topbar-actions { gap: 6px; }
+      .today-layout { display: block; }
+      .today-layout > * { margin-bottom: 11px; }
+      .focus-anchor { min-height: 410px; padding: 22px; }
+      .focus-topic { margin-top: 34px; }
+      .timer-value { font-size: 62px; }
+      .task-row { grid-template-columns: 42px 21px minmax(0, 1fr); padding-inline: 12px; }
+      .task-row .tag, .task-row .drag-handle { display: none; }
+      .day-rhythm { display: block; }
+      .timeline { margin-top: 16px; }
+      .week-flow { padding: 15px; }
+      .week-days { min-width: 590px; }
+      .review-pulse { min-height: 220px; }
+      .page-section { overflow-x: auto; }
+      .desktop-only-copy, .plan-canvas { display: none; }
+      .mobile-only-copy, .mobile-plan { display: block; }
+      #view-plan .page-section { overflow: hidden; }
+      .focus-stage { min-height: 500px; }
+      .review-main, .review-side { padding: 17px; }
+      .review-bars { gap: 7px; }
+      .review-stats { grid-template-columns: 1fr 1fr; }
+      .review-stat:last-child { grid-column: 1 / -1; }
+      .dialog-body { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      #planActionDialog { width: calc(100% - 24px); margin: auto 12px 12px; }
+      .mobile-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 7px 6px max(7px, env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 1px solid var(--line);
+        backdrop-filter: blur(12px);
+      }
+      .mobile-nav button { min-height: 52px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; gap: 2px; font-size: 10px; }
+      .mobile-nav button.active { color: var(--indigo); }
+      .toast { left: 14px; right: 14px; bottom: 78px; text-align: center; }
+    }
+    @media (pointer: coarse) {
+      .button, .segmented button, .duration-options button { min-height: 44px; }
+      .plan-card { cursor: default; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* 2026 product-spec revision */
+    :root {
+      --rail-bg: #eceee9;
+      --rail-hover: #e2e5df;
+      --rail-active: #ffffff;
+      --rail-accent: #527a70;
+      --brand-surface: #28342f;
+      --danger: #ad5149;
+      --danger-soft: #fbefed;
+    }
+    .rail { background: var(--rail-bg); border-right-color: #d5d9d2; }
+    .brand { background: var(--brand-surface); color: #f7f8f5; box-shadow: none; }
+    .rail-button { color: #66716c; }
+    .rail-button:hover { background: var(--rail-hover); color: #26332e; }
+    .rail-button.active { background: var(--rail-active); color: #26332e; box-shadow: 0 4px 14px rgba(35,49,43,.08); }
+    .rail-button.active::before { background: var(--rail-accent); }
+    .rail-button .tip { background: #26332e; }
+    .avatar-button { border: 0; padding: 0; background: transparent; border-radius: 50%; }
+    .avatar { background: #d8ddd7; color: #34413b; border: 1px solid #c8cec7; }
+    .topbar-account { display: none; }
+    .button.danger { color: var(--danger); border-color: #e8c6c1; background: var(--danger-soft); }
+    .button.text-danger { color: var(--danger); }
+    .button:disabled { cursor: not-allowed; opacity: .48; transform: none; box-shadow: none; }
+    .context-line { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 8px; color: var(--focus-muted); font-size: 11px; }
+    .context-line .plan-path { font-weight: 750; color: #4d6764; }
+    .focus-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .focus-stat { padding: 10px 11px; border: 1px solid rgba(79,113,132,.16); background: rgba(255,255,255,.38); }
+    .focus-stat span { display: block; color: var(--focus-muted); font-size: 9px; }
+    .focus-stat strong { display: block; margin-top: 4px; font-size: 12px; }
+    .focus-actions .complete-task { flex: 0 0 auto; min-width: 126px; }
+    .focus-more { flex: 0 0 40px; }
+    .task-copy .task-path { color: #536964; font-weight: 700; }
+    .task-row.adjusted .task-time { color: #8a681f; font-weight: 800; }
+    .task-row.adjusted { box-shadow: inset 3px 0 0 var(--amber); }
+    .break-note { margin-top: 10px; padding: 9px 11px; background: var(--green-soft); color: #3e705d; font-size: 11px; line-height: 1.5; display: none; }
+    .break-note.show { display: block; }
+
+    .plan-toolbar-actions { margin-left: auto; display: flex; gap: 8px; }
+    .plan-canvas.plan-workspace {
+      --plan-left: 55%;
+      display: grid;
+      grid-template-columns: minmax(0, calc(var(--plan-left) - 6px)) 12px minmax(0, calc(100% - var(--plan-left) - 6px));
+      min-width: 1008px;
+      min-height: 0;
+      flex: 1;
+      align-items: stretch;
+    }
+    .plan-week-pane { min-width: 0; min-height: 0; display: grid; grid-template-columns: 256px minmax(0, 1fr); background: #fff; }
+    .plan-days-scroll { min-width: 0; min-height: 0; overflow-x: auto; overflow-y: hidden; overscroll-behavior-inline: contain; scrollbar-gutter: stable; }
+    .plan-days { min-width: 850px; height: 100%; display: grid; grid-template-columns: repeat(5, minmax(170px, 1fr)); }
+    .plan-week-pane .plan-sidebar, .plan-week-pane .plan-day { min-height: 0; height: 100%; }
+    .plan-week-pane .plan-tree, .plan-week-pane .plan-dropzone { min-height: 0; height: calc(100% - 76px); overflow-y: auto; }
+    .plan-resizer { position: relative; min-height: 0; height: 100%; border: 0; border-inline: 1px solid #d6ded9; background: #f1f4f1; cursor: col-resize; touch-action: none; }
+    .plan-resizer::before { content: ""; position: absolute; top: 50%; left: 50%; width: 3px; height: 54px; border-radius: 3px; background: #aab5af; transform: translate(-50%, -50%); }
+    .plan-resizer:hover, .plan-resizer.is-dragging, .plan-resizer:focus-visible { background: #e5ece8; }
+    .plan-resizer:hover::before, .plan-resizer.is-dragging::before, .plan-resizer:focus-visible::before { background: #527a70; }
+    .plan-structure { min-height: 0; height: 100%; padding: 18px 22px 16px; background: #fbfcfa; display: flex; flex-direction: column; }
+    .plan-structure-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+    .plan-structure-head h3 { margin: 0; font-size: 13px; }
+    .plan-structure-head p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .plan-structure-head span { color: #527a70; font-size: 10px; font-weight: 800; }
+    #planGraph { width: 100%; min-height: 0; flex: 1; overflow: hidden; position: relative; }
+    .graph-fallback { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .graph-task-row { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .graph-node { width: min(228px, 100%); min-height: 56px; padding: 9px 14px; border: 1px solid var(--line); border-radius: 6px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+    .graph-node small { color: var(--muted); font-size: 9px; }
+    .graph-node strong { width: 100%; margin-top: 3px; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+    .graph-node.plan { border-color: #527a70; background: #edf3f0; }
+    .graph-node.stage { border-color: var(--amber); background: #fff8e9; }
+    .graph-node.task { border-color: var(--indigo); background: #f2f4fc; }
+    button.graph-node { color: var(--ink); font: inherit; cursor: pointer; }
+    button.graph-node:hover { border-color: var(--indigo-deep); background: #e9edfb; transform: translateY(-1px); }
+    .graph-node.is-selected { border-width: 2px; box-shadow: 0 0 0 3px rgba(82,122,112,.10); }
+    .graph-link { width: 1px; height: 24px; flex: 0 0 24px; background: #b8c1bc; }
+    .plan-tree { padding: 10px; }
+    .plan-tree-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 10px; }
+    .plan-tree-head span { color: var(--muted); font-size: 10px; }
+    .tree-plan, .tree-stage { width: 100%; border: 0; background: transparent; color: var(--ink); text-align: left; }
+    .tree-plan { padding: 10px; display: flex; align-items: center; gap: 8px; font-weight: 800; border-radius: 6px; }
+    .tree-plan svg { flex: 0 0 auto; }
+    .tree-plan.active { background: #e7efed; color: #315955; }
+    .tree-stage { min-height: 36px; padding: 8px 10px 8px 34px; color: var(--muted); border-radius: 6px; font-size: 11px; }
+    .tree-stage.active { color: #3e5d59; background: #f0f5f3; font-weight: 750; }
+    .tree-plan:hover, .tree-stage:hover { background: #edf2ef; color: #315955; }
+    .tree-meta { margin: 8px 10px 14px 34px; color: var(--muted); font-size: 9px; }
+    .plan-card span { display: block; line-height: 1.55; }
+    .plan-card .card-context { color: #556b66; font-weight: 700; }
+    .plan-card.graph-highlight { outline: 2px solid #527a70; outline-offset: 2px; box-shadow: 0 8px 22px rgba(49,89,85,.18); }
+    @media (prefers-reduced-motion: no-preference) {
+      .plan-card.graph-highlight { animation: graph-card-focus 900ms ease-out; }
+      @keyframes graph-card-focus { 0% { transform: translateY(0); } 35% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
+    }
+    .plan-dropzone { background: #fff; }
+    .mobile-plan-selector { width: 100%; min-height: 48px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 0; background: transparent; padding: 0; color: var(--ink); text-align: left; }
+    .mobile-plan-selector span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+
+    .focus-device { display: none; margin: 12px 0 0; padding: 9px 11px; background: #f7f5eb; border-left: 3px solid var(--amber); color: #725f35; font-size: 11px; }
+    .duration-options .custom-duration { display: inline-flex; align-items: center; gap: 5px; }
+    .custom-duration-field { display: none; align-items: center; gap: 7px; margin-top: 10px; }
+    .custom-duration-field.show { display: flex; }
+    .custom-duration-field input { width: 92px; min-height: 38px; border: 1px solid #bfd1d4; border-radius: 6px; padding: 7px 9px; }
+    .focus-queue .queue-context { color: #526a65; font-weight: 700; }
+    .queue-item .button { min-width: 40px; }
+
+    .review-growth { margin-bottom: 14px; padding: 20px 22px; border: 1px solid #d8ded8; background: #f7f8f3; display: grid; grid-template-columns: minmax(0,1.4fr) repeat(3,minmax(120px,.5fr)); gap: 18px; align-items: center; }
+    .growth-copy small { color: var(--muted); font-size: 10px; }
+    .growth-copy strong { display: block; margin: 5px 0 6px; font-size: 28px; font-variant-numeric: tabular-nums; }
+    .growth-copy p { margin: 0; color: #58645e; font-size: 11px; line-height: 1.6; }
+    .growth-fact { padding-left: 16px; border-left: 1px solid var(--line); }
+    .growth-fact > span { display: block; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .growth-fact strong { display: flex; align-items: baseline; gap: 5px; margin-top: 7px; font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .growth-fact strong span { color: var(--ink); font-size: inherit; }
+    .growth-fact strong small { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .review-header { display: flex; align-items: flex-start; gap: 12px; }
+    .review-header .segmented { margin-left: auto; }
+    .review-summary { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+    .metric { padding: 15px; background: var(--surface); border: 1px solid var(--line); }
+    .metric-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .metric-head span { color: var(--muted); font-size: 10px; }
+    .metric-head button { width: 26px; height: 26px; border: 0; background: transparent; color: var(--muted); padding: 3px; }
+    .metric strong { display: block; margin-top: 8px; font-size: 23px; }
+    .metric small { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; }
+    .metric.positive strong { color: var(--green); }
+    .trend-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 13px; color: var(--muted); font-size: 10px; }
+    .legend-dot { width: 8px; height: 8px; display: inline-block; margin-right: 5px; border-radius: 50%; background: var(--indigo); }
+    .legend-dot.original { background: #b7bcae; }
+    .legend-dot.adjusted { background: var(--amber); }
+    .review-chart { width: 100%; height: 292px; margin-top: 10px; }
+    .review-insight { margin-top: 8px; min-height: 52px; padding: 11px 13px; background: #f5f7f4; display: flex; align-items: center; gap: 10px; color: #4e5f57; font-size: 11px; line-height: 1.55; }
+    .review-insight svg { flex: 0 0 auto; color: #527a70; }
+    .category-chart { width: 100%; height: 190px; }
+    .review-stat { position: relative; }
+    .review-stat button { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border: 0; background: transparent; color: var(--muted); padding: 3px; }
+
+    .settings-layout { display: grid; grid-template-columns: 224px minmax(0,1fr); min-height: 620px; }
+    .settings-nav { padding: 14px; border-right: 1px solid var(--line); background: #f7f9f7; }
+    .settings-nav button { width: 100%; min-height: 42px; padding: 9px 11px; border: 0; background: transparent; color: var(--muted); text-align: left; border-radius: 6px; font-weight: 700; }
+    .settings-nav button.active { background: #e6efed; color: #315955; }
+    .settings-panel { padding: 26px; }
+    .settings-panel h2 { margin: 0 0 5px; font-size: 20px; }
+    .settings-panel > p { margin: 0 0 24px; color: var(--muted); font-size: 11px; }
+    .setting-group { margin-bottom: 28px; }
+    .setting-group h3 { margin: 0 0 10px; font-size: 13px; }
+    .setting-row { min-height: 66px; padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 18px; }
+    .setting-copy { min-width: 0; flex: 1; }
+    .setting-copy strong { display: block; font-size: 12px; }
+    .setting-copy span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .setting-control input[type="number"], .setting-control input[type="time"], .setting-control input[type="text"], #displayNameInput { width: 140px; min-height: 38px; border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
+    .switch { position: relative; width: 42px; height: 24px; }
+    .switch input { position: absolute; opacity: 0; }
+    .switch span { position: absolute; inset: 0; border-radius: 24px; background: #c8ceca; }
+    .switch span::after { content: ""; position: absolute; width: 18px; height: 18px; top: 3px; left: 3px; border-radius: 50%; background: #fff; transition: transform 150ms ease; }
+    .switch input:checked + span { background: var(--green); }
+    .switch input:checked + span::after { transform: translateX(18px); }
+    .direction-list { display: grid; gap: 5px; }
+    .direction-item { min-height: 48px; display: grid; grid-template-columns: 18px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); }
+    .direction-swatch { width: 12px; height: 12px; border-radius: 3px; background: var(--indigo); }
+    .direction-item strong { font-size: 11px; }
+
+    .dialog-copy { padding: 0 20px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .dialog-stack { padding: 18px 20px; display: grid; gap: 12px; }
+    .choice-card { width: 100%; min-height: 68px; padding: 13px; border: 1px solid var(--line); background: #fff; text-align: left; color: var(--ink); }
+    .choice-card:hover { border-color: #9fbab4; background: #f6faf8; }
+    .choice-card strong { display: block; font-size: 12px; }
+    .choice-card span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .extend-panel { display: none; padding: 0 20px 18px; }
+    .extend-panel.show { display: block; }
+    .impact-summary { padding: 12px; background: var(--amber-soft); color: #735b28; font-size: 11px; line-height: 1.6; }
+    .impact-list { display: grid; gap: 0; margin-top: 12px; border: 1px solid var(--line); }
+    .impact-row { min-height: 58px; padding: 10px 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
+    .impact-row:last-child { border-bottom: 0; }
+    .impact-row strong { display: block; font-size: 11px; }
+    .impact-row span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .impact-row time { color: #7d6228; font-size: 11px; font-weight: 800; }
+    #planDialog { width: min(640px, calc(100% - 28px)); }
+    #taskDialog { width: min(680px, calc(100% - 28px)); }
+    .inline-action { width: 100%; min-height: 38px; justify-content: flex-start; color: var(--indigo-deep); }
+    .field-hint { color: var(--muted); font-size: 9px; line-height: 1.4; }
+    .end-preview { min-height: 42px; padding: 10px 12px; background: #f1f5f3; color: #46605a; font-size: 11px; display: flex; align-items: center; }
+
+    .auth-shell {
+      min-height: 100vh;
+      padding: clamp(24px, 5vw, 72px);
+      background: #eef0ec;
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: minmax(240px, .7fr) minmax(420px, 1fr);
+      gap: clamp(44px, 8vw, 120px);
+      align-items: center;
+      overflow: hidden;
+    }
+    .auth-shell[hidden] { display: none !important; }
+    .auth-intro { align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; padding: 8px 0; animation: auth-enter 520ms cubic-bezier(.2,.75,.25,1) both; }
+    .auth-brand { display: flex; align-items: center; gap: 13px; font-size: 14px; font-weight: 850; }
+    .auth-brand-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 7px; background: #28342f; color: #fff; font-size: 18px; }
+    .auth-statement { max-width: 410px; padding: 42px 0; }
+    .auth-statement span { color: #5f6c66; font-size: 11px; font-weight: 750; }
+    .auth-statement h1 { margin: 13px 0 16px; font-size: 52px; line-height: 1.12; font-weight: 780; }
+    .auth-statement p { max-width: 340px; margin: 0; color: #68736d; font-size: 12px; line-height: 1.8; }
+    .auth-date { display: flex; align-items: center; gap: 9px; color: #68736d; font-size: 11px; }
+    .auth-date::before { content: ""; width: 34px; height: 1px; background: #8ca39b; }
+    .auth-panel { width: min(100%, 470px); justify-self: center; padding: clamp(28px, 5vw, 54px); background: #fff; border-top: 3px solid #527a70; box-shadow: 0 24px 70px rgba(35,49,43,.1); animation: auth-enter 560ms 70ms cubic-bezier(.2,.75,.25,1) both; }
+    .auth-screen { display: grid; gap: 20px; }
+    .auth-screen[hidden] { display: none !important; }
+    .auth-head { display: flex; align-items: flex-start; gap: 12px; }
+    .auth-head button { margin-left: -8px; }
+    .auth-head-copy { min-width: 0; flex: 1; }
+    .auth-head h2 { margin: 0; font-size: 25px; }
+    .auth-head p { margin: 7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .auth-form { display: grid; gap: 14px; }
+    .auth-field { display: grid; gap: 6px; }
+    .auth-field label { color: #53605a; font-size: 11px; font-weight: 750; }
+    .auth-field input { width: 100%; min-height: 46px; border: 1px solid #d6ddd8; border-radius: 6px; padding: 10px 12px; background: #fbfcfa; color: var(--ink); }
+    .auth-field input:focus { background: #fff; border-color: #789b92; }
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 46px; }
+    .password-toggle { position: absolute; right: 4px; top: 3px; width: 40px; height: 40px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; }
+    .captcha-row { display: grid; grid-template-columns: minmax(0,1fr) 112px 40px; gap: 7px; }
+    .captcha-code { min-height: 46px; border: 1px solid #cad3cd; background: #edf1ed; display: grid; place-items: center; color: #34473f; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 17px; font-weight: 850; letter-spacing: 4px; user-select: none; }
+    .auth-check { display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 9px; align-items: start; color: #64706a; font-size: 10px; line-height: 1.65; }
+    .auth-check input { margin: 2px 0 0; width: 16px; height: 16px; accent-color: #527a70; }
+    .auth-link { border: 0; padding: 0; background: transparent; color: #4e5e9d; font-size: inherit; font-weight: 750; }
+    .auth-primary { width: 100%; min-height: 48px; margin-top: 2px; background: #28342f; border-color: #28342f; color: #fff; transition: transform 160ms ease, background 160ms ease; }
+    .auth-primary:hover { background: #35443d; }
+    .auth-between { display: flex; justify-content: space-between; gap: 14px; align-items: center; color: var(--muted); font-size: 10px; }
+    .auth-footer { padding-top: 2px; display: flex; justify-content: center; gap: 8px; color: var(--muted); font-size: 10px; }
+    .auth-error { min-height: 18px; color: var(--danger); font-size: 10px; }
+    .recovery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .recovery-code { padding: 10px; background: #f2f5f2; border: 1px solid var(--line); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; text-align: center; }
+    @keyframes auth-enter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    .settings-back { display: none; }
+    .settings-back.show { display: inline-flex; }
+    .profile-summary { min-height: 108px; display: grid; grid-template-columns: 72px minmax(0,1fr) auto; gap: 18px; align-items: center; padding: 16px 0 22px; border-bottom: 1px solid var(--line); }
+    .profile-avatar { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: #d8e4df center/cover no-repeat; color: #315148; font-size: 23px; font-weight: 850; }
+    .profile-summary h3 { margin: 0; font-size: 18px; }
+    .profile-summary p { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
+    .settings-menu-row { width: 100%; min-height: 64px; border: 0; border-bottom: 1px solid var(--line); padding: 12px 0; background: transparent; display: grid; grid-template-columns: 34px minmax(0,1fr) 20px; gap: 10px; align-items: center; color: var(--ink); text-align: left; }
+    .settings-menu-row > svg { color: #62756d; }
+    .settings-menu-row strong { display: block; font-size: 12px; }
+    .settings-menu-row span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .settings-menu-row .chevron { color: #a1aaa5; }
+    .legal-list { display: grid; }
+    .legal-copy { max-height: min(66vh, 620px); overflow: auto; padding: 20px; color: #4f5b55; font-size: 11px; line-height: 1.85; }
+    .legal-copy h3 { color: var(--ink); margin: 22px 0 8px; font-size: 14px; }
+    .legal-copy h3:first-child { margin-top: 0; }
+    .legal-copy p { margin: 0 0 12px; }
+    #legalDialog { width: min(720px, calc(100% - 28px)); }
+
+    @media (max-width: 720px) {
+      .auth-shell { display: block; padding: 22px 18px 34px; background: #f4f5f1; }
+      .auth-intro { min-height: auto; display: block; }
+      .auth-statement { padding: 48px 0 24px; }
+      .auth-statement h1 { font-size: 34px; }
+      .auth-statement p, .auth-date { display: none; }
+      .auth-panel { width: 100%; padding: 26px 20px; box-shadow: none; }
+      .captcha-row { grid-template-columns: minmax(0,1fr) 96px 40px; }
+      .recovery-grid { grid-template-columns: 1fr; }
+      .topbar-account { display: inline-flex; }
+      .topbar { align-items: flex-start; }
+      #view-plan .page-section { height: auto; display: block; }
+      .focus-anchor { min-height: 430px; }
+      .focus-topic h2 { font-size: 27px; }
+      .focus-stats { grid-template-columns: repeat(3, 1fr); }
+      .focus-stat { padding: 8px; }
+      .focus-actions { flex-wrap: wrap; }
+      .focus-actions .timer-toggle { order: 1; flex-basis: calc(100% - 49px); }
+      .focus-actions .focus-more { order: 2; }
+      .focus-actions .complete-task { order: 3; width: 100%; }
+      .date-strip { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding-inline: 8px; overflow: hidden; }
+      .date-chip { min-width: 0; min-height: 54px; padding: 5px 2px; }
+      .date-chip span { font-size: 9px; }
+      .date-chip strong { font-size: 14px; }
+      .plan-toolbar-actions .button-label { display: inline; }
+      .plan-toolbar-actions .button { min-width: 42px; }
+      .plan-structure { display: none; }
+      .review-growth { grid-template-columns: 1fr 1fr; padding: 16px; gap: 14px; }
+      .growth-copy { grid-column: 1 / -1; }
+      .growth-fact { padding-left: 0; border-left: 0; }
+      .growth-fact:last-child { grid-column: 1 / -1; }
+      .review-summary { grid-template-columns: 1fr 1fr; }
+      .metric:last-child { grid-column: 1 / -1; }
+      .review-header { display: block; }
+      .review-header .segmented { margin: 12px 0 0; }
+      .review-chart { height: 250px; }
+      .settings-layout { display: block; min-height: 0; }
+      .settings-nav { display: none; }
+      .settings-panel { padding: 18px 16px; }
+      .profile-summary { grid-template-columns: 60px minmax(0,1fr); }
+      .profile-avatar { width: 60px; height: 60px; }
+      .profile-summary .button { grid-column: 1 / -1; width: 100%; }
+      .setting-row { align-items: flex-start; }
+      .dialog-actions { position: sticky; bottom: 0; background: #fff; }
+      #taskDialog, #planDialog, #focusCompleteDialog, #impactDialog, #manualCompleteDialog { width: calc(100% - 24px); max-height: calc(100vh - 24px); margin: auto 12px 12px; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand"><div class="brand-mark"><i data-lucide="timer-reset"></i></div><div class="brand-text"><strong>时序</strong><small>学习与专注助手</small></div></div>
-      <nav class="nav" aria-label="主导航">
-        <button class="active" data-view-target="today"><i data-lucide="sun"></i><span>今日</span></button>
-        <button data-view-target="plan"><i data-lucide="calendar-range"></i><span>计划</span></button>
-        <button data-view-target="focus"><i data-lucide="timer"></i><span>专注</span></button>
-        <button data-view-target="review"><i data-lucide="chart-column"></i><span>复盘</span></button>
+  <section class="auth-shell" id="authShell" hidden aria-label="账号访问">
+    <div class="auth-intro">
+      <div class="auth-brand"><span class="auth-brand-mark">序</span><span>时序 Focus Plan</span></div>
+      <div class="auth-statement"><span>FOCUS WITH RHYTHM</span><h1>专注于当下，<br>也记得走了多远。</h1><p>今天的每一段投入，都会在计划与复盘中留下清晰的轨迹。</p></div>
+      <div class="auth-date" id="authDate">北京时间</div>
+    </div>
+    <div class="auth-panel">
+      <section class="auth-screen" id="authLogin" data-auth-screen="login">
+        <header class="auth-head"><div class="auth-head-copy"><h2>欢迎回来</h2><p>继续今天的学习节奏。</p></div></header>
+        <form class="auth-form" id="loginForm">
+          <div class="auth-field"><label for="loginUsername">登录用户名</label><input id="loginUsername" autocomplete="username" required placeholder="输入登录用户名"></div>
+          <div class="auth-field"><label for="loginPassword">密码</label><div class="password-wrap"><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="输入密码"><button class="password-toggle" type="button" data-password="loginPassword" aria-label="显示密码"><i data-lucide="eye"></i></button></div></div>
+          <div class="auth-between"><button class="auth-link" type="button" data-auth-target="recovery">使用恢复码找回密码</button><span>登录无需验证码</span></div>
+          <div class="auth-error" id="loginError" role="alert"></div>
+          <button class="button auth-primary magnetic-button" type="submit">登录</button>
+        </form>
+        <div class="auth-footer"><span>还没有账号？</span><button class="auth-link" type="button" data-auth-target="register">创建账号</button></div>
+        <div class="auth-footer"><button class="auth-link" type="button" data-legal="terms">用户协议</button><span>·</span><button class="auth-link" type="button" data-legal="privacy">隐私政策</button></div>
+      </section>
+
+      <section class="auth-screen" id="authRegister" data-auth-screen="register" hidden>
+        <header class="auth-head"><button class="button ghost icon" type="button" data-auth-target="login" aria-label="返回登录"><i data-lucide="arrow-left"></i></button><div class="auth-head-copy"><h2>创建账号</h2><p>注册后会生成一次性恢复码，请妥善保存。</p></div></header>
+        <form class="auth-form" id="registerForm">
+          <div class="auth-field"><label for="registerUsername">登录用户名</label><input id="registerUsername" minlength="4" maxlength="32" required placeholder="4-32 个字符"></div>
+          <div class="auth-field"><label for="registerPassword">密码</label><div class="password-wrap"><input id="registerPassword" type="password" minlength="8" required placeholder="至少 8 位，包含字母和数字"><button class="password-toggle" type="button" data-password="registerPassword" aria-label="显示密码"><i data-lucide="eye"></i></button></div></div>
+          <div class="auth-field"><label for="registerConfirm">确认密码</label><input id="registerConfirm" type="password" minlength="8" required placeholder="再次输入密码"></div>
+          <div class="auth-field"><label for="registerCaptcha">图形验证码</label><div class="captcha-row"><input id="registerCaptcha" required maxlength="4" placeholder="输入字符"><span class="captcha-code" data-captcha>7K4M</span><button class="button icon" type="button" data-refresh-captcha aria-label="刷新验证码"><i data-lucide="refresh-cw"></i></button></div></div>
+          <label class="auth-check"><input id="ageConsent" type="checkbox" required><span>我确认已年满 14 周岁。</span></label>
+          <div class="auth-check"><input id="agreementConsent" type="checkbox" required><span><label for="agreementConsent">我已阅读并同意</label> <button class="auth-link" type="button" data-legal="terms">《用户协议》</button> 和 <button class="auth-link" type="button" data-legal="privacy">《隐私政策》</button>。</span></div>
+          <div class="auth-error" id="registerError" role="alert"></div>
+          <button class="button auth-primary magnetic-button" type="submit">注册并生成恢复码</button>
+        </form>
+      </section>
+
+      <section class="auth-screen" id="authRecovery" data-auth-screen="recovery" hidden>
+        <header class="auth-head"><button class="button ghost icon" type="button" data-auth-target="login" aria-label="返回登录"><i data-lucide="arrow-left"></i></button><div class="auth-head-copy"><h2>恢复账号</h2><p>恢复码只能使用一次，成功后会撤销其他设备会话。</p></div></header>
+        <form class="auth-form" id="recoveryForm">
+          <div class="auth-field"><label for="recoveryUsername">登录用户名</label><input id="recoveryUsername" required placeholder="输入登录用户名"></div>
+          <div class="auth-field"><label for="recoveryCode">恢复码</label><input id="recoveryCode" required placeholder="例如：FP7K-2M9Q"></div>
+          <div class="auth-field"><label for="recoveryCaptcha">图形验证码</label><div class="captcha-row"><input id="recoveryCaptcha" required maxlength="4" placeholder="输入字符"><span class="captcha-code" data-captcha>7K4M</span><button class="button icon" type="button" data-refresh-captcha aria-label="刷新验证码"><i data-lucide="refresh-cw"></i></button></div></div>
+          <div class="auth-field"><label for="recoveryPassword">新密码</label><input id="recoveryPassword" type="password" minlength="8" required placeholder="至少 8 位，包含字母和数字"></div>
+          <div class="auth-field"><label for="recoveryConfirm">确认新密码</label><input id="recoveryConfirm" type="password" minlength="8" required placeholder="再次输入新密码"></div>
+          <div class="auth-error" id="recoveryError" role="alert"></div>
+          <button class="button auth-primary magnetic-button" type="submit">更新密码</button>
+        </form>
+      </section>
+
+      <section class="auth-screen" id="authCodes" data-auth-screen="codes" hidden>
+        <header class="auth-head"><div class="auth-head-copy"><h2>保存恢复码</h2><p>这些恢复码只展示一次，每个只能使用一次。</p></div></header>
+        <div class="recovery-grid" id="recoveryCodeGrid"><code class="recovery-code">FP7K-2M9Q</code><code class="recovery-code">RX4T-8L2A</code><code class="recovery-code">N6CP-3V7H</code><code class="recovery-code">JW9E-5K4R</code><code class="recovery-code">Q2DM-8X6B</code><code class="recovery-code">TA5N-7P3C</code></div>
+        <p class="field-hint">如果全部遗失，在接入邮箱或短信验证前将无法自助找回账号。</p>
+        <button class="button" id="copyRecoveryCodes" type="button"><i data-lucide="copy"></i>复制恢复码</button>
+        <button class="button auth-primary magnetic-button" id="finishRegistration" type="button">我已保存，进入时序</button>
+      </section>
+    </div>
+  </section>
+
+  <div class="app-shell" id="appShell">
+    <aside class="rail" aria-label="主导航">
+      <div class="brand" aria-label="时序">序</div>
+      <nav class="rail-nav">
+        <button class="rail-button active" data-view="today" aria-label="今日"><i data-lucide="sun"></i><span class="tip">今日</span></button>
+        <button class="rail-button" data-view="plan" aria-label="计划"><i data-lucide="calendar-range"></i><span class="tip">计划</span></button>
+        <button class="rail-button" data-view="focus" aria-label="专注"><i data-lucide="timer-reset"></i><span class="tip">专注</span></button>
+        <button class="rail-button" data-view="review" aria-label="复盘"><i data-lucide="chart-no-axes-combined"></i><span class="tip">复盘</span></button>
       </nav>
-      <div class="weekly">本周目标<strong>13.5 / 20h</strong><div class="progress"><span></span></div></div>
+      <div class="rail-footer">
+        <button class="rail-button avatar-button" id="railAccountButton" aria-label="账号与设置" title="账号与设置"><span class="avatar">HY</span><span class="tip">账号与设置</span></button>
+      </div>
     </aside>
-    <main>
+
+    <main class="workspace">
       <header class="topbar">
-        <div><h1 id="pageTitle">今日学习</h1><p id="pageSubtitle">7月22日 周三 · 保持节奏，完成 4 个学习块</p></div>
-        <div class="top-actions"><button class="btn icon-btn" id="quickFocus" aria-label="快速专注" title="快速专注"><i data-lucide="zap"></i></button><button class="btn primary" id="openTask"><i data-lucide="plus"></i>添加任务</button></div>
+        <button class="button icon settings-back" id="settingsBackButton" aria-label="返回"><i data-lucide="arrow-left"></i></button>
+        <div>
+          <div class="eyebrow" id="pageEyebrow">7月23日 · 星期四 · 第30周</div>
+          <h1 id="pageTitle">把今天过得有节奏</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="button icon topbar-account" id="topbarAccountButton" aria-label="账号与设置" title="账号与设置"><i data-lucide="user-round"></i></button>
+          <button class="button primary" id="addTaskButton" aria-label="新建任务"><i data-lucide="plus"></i><span class="button-label">新建任务</span></button>
+        </div>
       </header>
 
-      <section class="view active" id="today">
-        <div class="date-strip" aria-label="日期选择">
-          <button class="date-btn"><span>周一</span><strong>20</strong></button><button class="date-btn"><span>周二</span><strong>21</strong></button><button class="date-btn active"><span>今天</span><strong>22</strong></button><button class="date-btn"><span>周四</span><strong>23</strong></button><button class="date-btn"><span>周五</span><strong>24</strong></button><button class="date-btn"><span>周六</span><strong>25</strong></button><button class="date-btn"><span>周日</span><strong>26</strong></button>
+      <section class="view active" id="view-today">
+        <div class="today-layout">
+          <section class="focus-anchor" aria-label="当前专注">
+            <div class="anchor-head">
+              <div class="anchor-label"><span class="live-dot"></span><span id="focusState">准备开始</span></div>
+              <span class="timer-mode">深度专注 · 50 分钟</span>
+            </div>
+            <div class="focus-topic">
+              <small>当前学习块</small>
+              <h2>完成实践练习</h2>
+              <div class="context-line"><span class="plan-path">职业能力提升计划 / 实践训练</span><span class="tag blue">实践训练</span></div>
+              <p>完成数据加载、异常状态与手机端适配。结束后记录阻塞点并更新项目进度。</p>
+            </div>
+            <div class="timer-display">
+              <strong class="timer-value">50:00</strong>
+              <div class="timer-meta">预计 11:20 完成<br>今日第 2 个学习块</div>
+            </div>
+            <div class="timer-progress" aria-hidden="true"><span></span></div>
+            <div class="focus-stats" aria-label="当前任务投入信息">
+              <div class="focus-stat"><span>原始预计</span><strong>50 分钟</strong></div>
+              <div class="focus-stat"><span>累计实际</span><strong id="todayActual">0 分钟</strong></div>
+              <div class="focus-stat"><span>剩余预计</span><strong id="todayRemaining">50 分钟</strong></div>
+            </div>
+            <div class="break-note" id="breakNote">已连续专注达到 40 分钟，建议休息 10 分钟再继续。</div>
+            <div class="focus-actions">
+              <button class="button timer-toggle"><i data-lucide="play"></i><span>开始专注</span></button>
+              <button class="button complete-task complete-focus"><i data-lucide="check"></i><span>完成任务</span></button>
+              <button class="button icon ghost focus-more" id="todayFocusMore" aria-label="更多专注操作" title="更多专注操作"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </section>
+
+          <section class="task-stream">
+            <div class="section-head">
+              <div><h2>今天的学习流</h2><p class="desktop-only-copy"><span id="doneCount">1</span>/4 已完成 · 拖动调整先后顺序</p><p class="mobile-only-copy"><span id="mobileDoneCount">1</span>/4 已完成 · 2h 50m</p></div>
+              <button class="button ghost small" id="compactAdd"><i data-lucide="plus"></i>添加</button>
+            </div>
+            <div id="taskList">
+              <article class="task-row done" draggable="true">
+                <time class="task-time">09:00</time><button class="check" aria-label="切换完成状态"><i data-lucide="check" width="13"></i></button>
+                <div class="task-copy"><strong>复习核心概念</strong><span><b class="task-path">职业能力提升计划</b> · 50 分钟 · 已完成</span></div><span class="tag">理论学习</span><button class="drag-handle" aria-label="拖动任务"><i data-lucide="grip-vertical"></i></button>
+              </article>
+              <article class="task-row current" draggable="true">
+                <time class="task-time">10:30</time><button class="check" aria-label="切换完成状态"></button>
+                <div class="task-copy"><strong>完成实践练习</strong><span><b class="task-path">职业能力提升计划</b> · 10:30–11:20 · 当前任务</span></div><span class="tag blue">实践训练</span><button class="drag-handle" aria-label="拖动任务"><i data-lucide="grip-vertical"></i></button>
+              </article>
+              <article class="task-row" draggable="true">
+                <time class="task-time">14:00</time><button class="check" aria-label="切换完成状态"></button>
+                <div class="task-copy"><strong>阅读专题材料</strong><span><b class="task-path">职业能力提升计划</b> · 14:00–14:40 · 待开始</span></div><span class="tag amber">阅读整理</span><button class="drag-handle" aria-label="拖动任务"><i data-lucide="grip-vertical"></i></button>
+              </article>
+              <article class="task-row" draggable="true">
+                <time class="task-time">20:00</time><button class="check" aria-label="切换完成状态"></button>
+                <div class="task-copy"><strong>复盘本周错题</strong><span>20:00–20:30 · 待开始</span></div><span class="tag">复习巩固</span><button class="drag-handle" aria-label="拖动任务"><i data-lucide="grip-vertical"></i></button>
+              </article>
+            </div>
+          </section>
+
+          <section class="day-rhythm">
+            <div class="rhythm-copy"><h2>今日节奏</h2><p>下午 14:00–16:00 是你的稳定高效时段，建议安排需要持续理解的任务。</p><strong>2h 50m</strong></div>
+            <div class="timeline" aria-label="今日专注节奏">
+              <div class="timeline-bar" style="--h:20px;height:20px" data-time="08"></div>
+              <div class="timeline-bar active" style="--h:48px;height:48px" data-time="09"></div>
+              <div class="timeline-bar active" style="--h:63px;height:63px" data-time="10"></div>
+              <div class="timeline-bar" style="--h:25px;height:25px" data-time="11"></div>
+              <div class="timeline-bar" style="--h:12px;height:12px" data-time="12"></div>
+              <div class="timeline-bar" style="--h:30px;height:30px" data-time="13"></div>
+              <div class="timeline-bar active" style="--h:70px;height:70px" data-time="14"></div>
+              <div class="timeline-bar active" style="--h:58px;height:58px" data-time="15"></div>
+              <div class="timeline-bar" style="--h:27px;height:27px" data-time="16"></div>
+              <div class="timeline-bar" style="--h:18px;height:18px" data-time="20"></div>
+            </div>
+          </section>
+
+          <section class="week-flow">
+            <div class="week-head">
+              <div><h2>本周投入分布</h2><p>目标 20 小时 · 已完成 13 小时 35 分</p></div>
+              <div class="segmented" data-segment><button class="active">周</button><button>月</button></div>
+            </div>
+            <div class="week-days">
+              <div class="day-column"><div class="day-label"><strong>一</strong><span>2.5h</span></div><div class="day-track"><span class="block blue" style="height:28px"></span><span class="block indigo" style="height:48px"></span></div></div>
+              <div class="day-column"><div class="day-label"><strong>二</strong><span>3.1h</span></div><div class="day-track"><span class="block amber" style="height:22px"></span><span class="block indigo" style="height:64px"></span></div></div>
+              <div class="day-column"><div class="day-label"><strong>三</strong><span>2.8h</span></div><div class="day-track"><span class="block green" style="height:20px"></span><span class="block blue" style="height:34px"></span><span class="block indigo" style="height:28px"></span></div></div>
+              <div class="day-column today"><div class="day-label"><strong>今天</strong><span>2.8h</span></div><div class="day-track"><span class="block amber" style="height:18px"></span><span class="block indigo" style="height:61px"></span></div></div>
+              <div class="day-column"><div class="day-label"><strong>五</strong><span>1.8h</span></div><div class="day-track"><span class="block blue" style="height:49px"></span></div></div>
+              <div class="day-column"><div class="day-label"><strong>六</strong><span>0.6h</span></div><div class="day-track"><span class="block amber" style="height:18px"></span></div></div>
+              <div class="day-column"><div class="day-label"><strong>日</strong><span>休息</span></div><div class="day-track"></div></div>
+            </div>
+          </section>
+
+          <aside class="review-pulse">
+            <h2>本周脉搏</h2><p>投入稳定，任务拆分仍有优化空间</p>
+            <div class="pulse-score"><strong>82</strong><span>节奏评分</span></div>
+            <div class="pulse-list">
+              <div class="pulse-item"><span>计划完成率</span><strong>76%</strong></div>
+              <div class="pulse-item"><span>平均专注块</span><strong>43 min</strong></div>
+              <div class="pulse-item"><span>连续学习</span><strong>12 天</strong></div>
+            </div>
+          </aside>
         </div>
-        <div class="metrics">
-          <article class="metric"><div class="metric-head"><span>今日进度</span><span class="metric-icon"><i data-lucide="circle-check-big"></i></span></div><strong id="progressText">1 / 4</strong><small>预计剩余 2 小时 10 分</small></article>
-          <article class="metric"><div class="metric-head"><span>专注时长</span><span class="metric-icon"><i data-lucide="hourglass"></i></span></div><strong>50 min</strong><small>连续专注 2 次</small></article>
-          <article class="metric"><div class="metric-head"><span>连续学习</span><span class="metric-icon"><i data-lucide="flame"></i></span></div><strong>12 天</strong><small>本周已完成 68%</small></article>
-        </div>
-        <div class="today-grid">
-          <div>
-            <section class="panel"><div class="panel-head"><h2>今日任务</h2><span class="muted">拖动手柄调整顺序</span></div>
-              <div class="task-list" id="taskList">
-                <div class="task done" draggable="true"><input type="checkbox" checked aria-label="完成任务"><div><div class="task-title">复习 ArkTS 状态管理</div><div class="task-meta"><span>09:00 - 09:50</span><span>50 分钟</span></div></div><span class="tag">鸿蒙开发</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
-                <div class="task" draggable="true"><input type="checkbox" aria-label="完成任务"><div><div class="task-title">完成天气卡片组件</div><div class="task-meta"><span>10:30 - 11:20</span><span>50 分钟</span></div></div><span class="tag blue">项目实战</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
-                <div class="task" draggable="true"><input type="checkbox" aria-label="完成任务"><div><div class="task-title">阅读性能优化章节</div><div class="task-meta"><span>14:00 - 14:40</span><span>40 分钟</span></div></div><span class="tag yellow">技术阅读</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
-                <div class="task" draggable="true"><input type="checkbox" aria-label="完成任务"><div><div class="task-title">整理面试题与错题</div><div class="task-meta"><span>20:00 - 20:30</span><span>30 分钟</span></div></div><span class="tag">求职准备</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button></div>
+      </section>
+
+      <section class="view" id="view-plan">
+        <div class="page-section">
+          <div class="page-toolbar"><div><h2>本周计划</h2><p class="eyebrow desktop-only-copy">目标拆解 · 拖动或使用菜单调整任务</p><p class="eyebrow mobile-only-copy" id="mobileWeekRange">本周</p></div><div class="plan-toolbar-actions"><div class="segmented desktop-only-copy" data-segment><button class="active">周</button><button>月</button></div><button class="button small" id="addStageButton"><i data-lucide="list-tree"></i><span class="button-label">新建 Stage</span></button><button class="button primary small" id="addPlanButton"><i data-lucide="folder-plus"></i><span class="button-label">新建 Plan</span></button></div></div>
+          <div class="plan-canvas plan-workspace" id="planSplit">
+            <div class="plan-week-pane">
+              <aside class="plan-sidebar"><div class="plan-corner"><strong>Plan / Stage</strong><span>选择计划上下文</span></div><div class="plan-tree"><div class="plan-tree-head"><span>进行中</span><button class="button ghost icon small" id="treeAddPlan" aria-label="新建 Plan"><i data-lucide="plus"></i></button></div><button class="tree-plan active" data-plan-context="career"><i data-lucide="chevron-down"></i>职业能力提升计划</button><button class="tree-stage" data-plan-context="career-all" data-parent-context="career">全部阶段</button><button class="tree-stage" data-plan-context="foundation" data-parent-context="career">基础学习</button><button class="tree-stage active" data-plan-context="practice" data-parent-context="career">实践训练</button><div class="tree-meta">8 / 12 项完成 · 实际投入 13.6 小时</div><button class="tree-plan" data-plan-context="reading"><i data-lucide="chevron-right"></i>阅读与表达计划</button><button class="tree-stage" data-plan-context="independent">独立任务</button></div></aside>
+              <div class="plan-days-scroll" id="planDaysScroll" aria-label="本周每日任务，可横向滚动">
+                <div class="plan-days">
+                  <section class="plan-day"><div class="plan-day-head"><strong data-week-day="0">周一</strong><span>2h 30m</span></div><div class="plan-dropzone"><article class="plan-card" data-graph-task-id="foundation-task-1"><strong>复习核心概念</strong><span class="card-context">基础学习 · 理论学习</span><span>09:00–09:50 · 50m</span></article><article class="plan-card amber" data-graph-task-id="reading-task-2"><strong>整理阅读笔记</strong><span class="card-context">基础学习 · 阅读整理</span><span>14:00–14:40 · 40m</span></article></div></section>
+                  <section class="plan-day"><div class="plan-day-head"><strong data-week-day="1">周二</strong><span>2h 20m</span></div><div class="plan-dropzone"><article class="plan-card green"><strong>数据结构练习</strong><span class="card-context">实践训练 · 实践训练</span><span>10:00–11:30 · 90m</span></article><article class="plan-card" data-graph-task-id="foundation-task-2"><strong>整理学习路径</strong><span class="card-context">基础学习 · 阅读整理</span><span>15:00–15:50 · 50m</span></article></div></section>
+                  <section class="plan-day"><div class="plan-day-head"><strong data-week-day="2">周三</strong><span>1h 30m</span></div><div class="plan-dropzone"><article class="plan-card" data-graph-task-id="practice-task-1"><strong>完成实践练习</strong><span class="card-context">实践训练 · 实践训练</span><span>10:30–11:20 · 50m</span></article><article class="plan-card amber" data-graph-task-id="reading-task-1"><strong>阅读专题材料</strong><span class="card-context">基础学习 · 阅读整理</span><span>14:00–14:40 · 40m</span></article></div></section>
+                  <section class="plan-day"><div class="plan-day-head"><strong data-week-day="3">周四</strong><span>1h 30m</span></div><div class="plan-dropzone"><article class="plan-card green" data-graph-task-id="practice-task-2"><strong>综合实践训练</strong><span class="card-context">实践训练 · 实践训练</span><span>09:30–11:00 · 90m</span></article></div></section>
+                  <section class="plan-day"><div class="plan-day-head"><strong data-week-day="4">周五</strong><span>50m</span></div><div class="plan-dropzone"><article class="plan-card" data-graph-task-id="practice-task-3"><strong>阶段回顾检查</strong><span class="card-context">实践训练 · 测试评估</span><span>15:00–15:50 · 50m</span></article></div></section>
+                </div>
               </div>
+            </div>
+            <div class="plan-resizer" id="planResizer" role="separator" tabindex="0" aria-label="调整周计划与流程图宽度" aria-orientation="vertical" aria-valuemin="35" aria-valuemax="65" aria-valuenow="55"></div>
+            <section class="plan-structure" aria-label="当前计划结构">
+              <div class="plan-structure-head"><div><h3 id="planStructureTitle">实践训练 · 推进路径</h3><p>点击左侧切换；点击任务节点定位排期</p></div><span id="planStructureProgress">3 项待推进</span></div>
+              <div id="planGraph"><div class="graph-fallback"><div class="graph-node plan"><small>PLAN</small><strong>职业能力提升计划</strong></div><i class="graph-link"></i><div class="graph-node stage is-selected"><small>STAGE</small><strong>实践训练</strong></div><i class="graph-link"></i><button class="graph-node task" type="button"><small>今天 10:30</small><strong>完成实践练习</strong></button><i class="graph-link"></i><button class="graph-node task" type="button"><small>周四 09:30</small><strong>综合实践训练</strong></button><i class="graph-link"></i><button class="graph-node task" type="button"><small>周五 15:00</small><strong>阶段回顾检查</strong></button></div></div>
             </section>
-            <section class="panel"><div class="panel-head"><h2>下一学习块</h2><span class="muted">10:30 开始</span></div><div class="next-block"><div class="next-time">50<br><span class="muted">分钟</span></div><div><strong>完成天气卡片组件</strong><div class="task-meta">项目实战 · 目标：完成数据加载与异常态</div></div></div></section>
           </div>
-          <aside class="panel focus-card"><div class="panel-head"><h2>专注计时</h2><span class="muted" id="timerModeLabel">专注</span></div><div class="timer-ring"><div><strong class="timerValue">25:00</strong><span>准备开始</span></div></div><div class="timer-actions"><button class="btn icon-btn resetTimer" aria-label="重置计时"><i data-lucide="rotate-ccw"></i></button><button class="btn primary toggleTimer"><i data-lucide="play"></i><span>开始专注</span></button></div></aside>
+          <div class="mobile-plan">
+            <section class="mobile-goal">
+              <button class="mobile-plan-selector" id="mobilePlanSelector"><div><strong>职业能力提升计划</strong><span>全部阶段 · 8 / 12 项完成</span></div><i data-lucide="chevron-down"></i></button>
+              <div class="goal-progress"><i style="width:67%"></i></div>
+            </section>
+            <div class="date-strip" role="tablist" aria-label="选择计划日期">
+              <button class="date-chip" data-plan-day="mon" role="tab" aria-selected="false"><span>一</span><strong>20</strong></button>
+              <button class="date-chip" data-plan-day="tue" role="tab" aria-selected="false"><span>二</span><strong>21</strong></button>
+              <button class="date-chip active" data-plan-day="wed" role="tab" aria-selected="true"><span>今天</span><strong>22</strong></button>
+              <button class="date-chip" data-plan-day="thu" role="tab" aria-selected="false"><span>四</span><strong>23</strong></button>
+              <button class="date-chip" data-plan-day="fri" role="tab" aria-selected="false"><span>五</span><strong>24</strong></button>
+              <button class="date-chip" data-plan-day="sat" role="tab" aria-selected="false"><span>六</span><strong>25</strong></button>
+              <button class="date-chip" data-plan-day="sun" role="tab" aria-selected="false"><span>日</span><strong>26</strong></button>
+            </div>
+            <section class="mobile-agenda" aria-live="polite">
+              <div class="mobile-agenda-head"><h3 id="mobilePlanDate">今天 · 7月22日</h3><span id="mobilePlanSummary">2 项 · 1h 30m</span></div>
+              <div class="mobile-plan-list" id="mobilePlanList"></div>
+            </section>
+          </div>
         </div>
       </section>
 
-      <section class="view" id="plan">
-        <div class="section-head"><div><h2>本周计划</h2><p>按学习阶段拆分目标，并形成可执行任务</p></div><div class="segment"><button class="active">周</button><button>月</button></div></div>
-        <div class="plan-board">
-          <section class="plan-column"><h3>基础巩固 · 4 项</h3><article class="plan-item"><strong>ArkTS 类型与语法</strong><p>复习联合类型、泛型、空值处理</p></article><article class="plan-item"><strong>ArkUI 状态管理</strong><p>完成 @State、@Prop、@Link 示例</p></article></section>
-          <section class="plan-column"><h3>项目实战 · 5 项</h3><article class="plan-item"><strong>天气卡片组件</strong><p>数据加载、骨架屏与错误重试</p></article><article class="plan-item"><strong>物迹资产列表</strong><p>实现筛选、搜索与懒加载</p></article><article class="plan-item"><strong>本地数据持久化</strong><p>封装 Preferences 与关系型数据</p></article></section>
-          <section class="plan-column"><h3>复盘输出 · 3 项</h3><article class="plan-item"><strong>性能问题清单</strong><p>记录 5 个常见渲染性能问题</p></article><article class="plan-item"><strong>周总结</strong><p>沉淀代码片段与下周改进项</p></article></section>
+      <section class="view" id="view-focus">
+        <div class="focus-page">
+          <section class="focus-stage">
+            <div class="anchor-head"><div class="anchor-label"><span class="live-dot"></span><span>专注空间</span></div><span class="timer-mode">当前设备 · Web</span></div>
+            <div class="focus-device" id="focusDeviceState">另一台设备刚刚更新了当前任务状态。</div>
+            <div class="focus-topic"><small>当前任务</small><h2>完成实践练习</h2><div class="context-line"><span class="plan-path">职业能力提升计划 / 实践训练</span><span class="tag blue">实践训练</span></div></div>
+            <strong class="timer-value">50:00</strong>
+            <div class="duration-options"><button data-minutes="25">25</button><button data-minutes="40">40</button><button class="active" data-minutes="50">50</button><button data-minutes="90">90</button><button class="custom-duration" id="customDurationButton"><i data-lucide="pencil-line"></i>自定义</button></div>
+            <div class="custom-duration-field" id="customDurationField"><input id="customDurationInput" type="number" min="1" step="1" value="60" aria-label="自定义专注分钟数"><span>分钟</span><button class="button small" id="applyCustomDuration">应用</button></div>
+            <div class="focus-stats" aria-label="当前任务投入信息"><div class="focus-stat"><span>原始预计</span><strong>50 分钟</strong></div><div class="focus-stat"><span>累计实际</span><strong id="focusActual">0 分钟</strong></div><div class="focus-stat"><span>预计结束</span><strong id="focusExpectedEnd">11:20</strong></div></div>
+            <div class="focus-actions" style="margin-top:18px"><button class="button timer-toggle"><i data-lucide="play"></i><span>开始专注</span></button><button class="button complete-task complete-focus"><i data-lucide="check"></i><span>完成任务</span></button><button class="button icon ghost focus-more" id="focusMoreButton" aria-label="更多专注操作"><i data-lucide="more-horizontal"></i></button></div>
+          </section>
+          <section class="page-section focus-queue"><h2>接下来的学习块</h2><p>完成任务后可继续下一项；连续专注达到 40 分钟时会显示休息建议。</p><div class="queue-item"><span class="queue-number">01</span><div><strong>阅读专题材料</strong><span class="queue-context">职业能力提升计划</span><span>阅读整理 · 14:00–14:40</span></div><button class="button ghost icon queue-action" aria-label="调整阅读专题材料"><i data-lucide="more-horizontal"></i></button></div><div class="queue-item"><span class="queue-number">02</span><div><strong>复盘本周错题</strong><span>复习巩固 · 20:00–20:30</span></div><button class="button ghost icon queue-action" aria-label="调整复盘本周错题"><i data-lucide="more-horizontal"></i></button></div><div class="queue-item"><span class="queue-number">03</span><div><strong>整理明日学习清单</strong><span>其他 · 21:00–21:15</span></div><button class="button ghost icon queue-action" aria-label="调整整理明日学习清单"><i data-lucide="more-horizontal"></i></button></div></section>
         </div>
       </section>
 
-      <section class="view" id="focus">
-        <div class="full-focus focus-card"><div class="section-head"><div><h2>沉浸专注</h2><p>关闭干扰，完成当前学习块</p></div><div class="segment" id="modeSegment"><button class="active" data-minutes="25">专注</button><button data-minutes="5">短休息</button><button data-minutes="15">长休息</button></div></div><div class="focus-task"><div><strong>完成天气卡片组件</strong><div class="task-meta">项目实战 · 当前任务</div></div><span class="tag blue">50 分钟</span></div><div class="timer-ring"><div><strong class="timerValue">25:00</strong><span>准备开始</span></div></div><div class="timer-actions"><button class="btn icon-btn resetTimer" aria-label="重置计时"><i data-lucide="rotate-ccw"></i></button><button class="btn primary toggleTimer"><i data-lucide="play"></i><span>开始专注</span></button><button class="btn icon-btn" id="skipTimer" aria-label="跳过当前阶段"><i data-lucide="skip-forward"></i></button></div></div>
+      <section class="view" id="view-review">
+        <section class="review-growth" aria-label="累计学习成果">
+          <div class="growth-copy"><small>从 4 月 8 日开始</small><strong><span id="growthHours" data-count="186.5">0.0</span> 小时专注</strong><p>这些时间已经沉淀为 142 个完成任务，并推动 7 个 Stage 向前。</p></div>
+          <div class="growth-fact"><span>完成任务</span><strong><span data-count="142">0</span><small>项</small></strong></div>
+          <div class="growth-fact"><span>推进 Stage</span><strong><span data-count="7">0</span><small>个</small></strong></div>
+          <div class="growth-fact"><span>连续学习</span><strong><span data-count="12">0</span><small>天</small></strong></div>
+        </section>
+        <div class="review-summary">
+          <article class="metric"><div class="metric-head"><span>原始计划投入</span><button aria-label="查看原始计划投入规则" class="metric-info"><i data-lucide="info"></i></button></div><strong>12.0 小时</strong><small>任务首次创建时的预计时长</small></article>
+          <article class="metric"><div class="metric-head"><span>调整后计划投入</span><button aria-label="查看调整后计划投入规则" class="metric-info"><i data-lucide="info"></i></button></div><strong>12.5 小时</strong><small>按当前排期计算</small></article>
+          <article class="metric positive"><div class="metric-head"><span>实际投入</span><button aria-label="查看实际投入规则" class="metric-info"><i data-lucide="info"></i></button></div><strong>13.6 小时</strong><small>较调整后计划 +1.1 小时</small></article>
+        </div>
+        <div class="review-layout">
+          <section class="page-section review-main"><div class="review-header"><div><h2 id="reviewChartTitle">本周投入节奏</h2><p id="reviewChartSubtitle">稳定性、计划偏差与每日节奏</p></div><div class="segmented" id="reviewRange"><button data-range="day">日</button><button class="active" data-range="week">周</button><button data-range="month">月</button></div></div><div class="trend-legend" id="trendLegend"><span><i class="legend-dot"></i>实际投入</span><span><i class="legend-dot original"></i>原始计划</span><span><i class="legend-dot adjusted"></i>调整后计划</span></div><div class="review-chart" id="reviewChart" role="img" aria-label="本周实际投入和计划投入图表"></div><div class="review-insight" id="reviewInsight"><i data-lucide="trending-up"></i><span>本周有 5 天保持稳定投入，实际专注比上周增加 2.4 小时。</span></div><div class="review-stats"><div class="review-stat"><span id="reviewStatOneLabel">完成率</span><strong id="reviewStatOne">76.4%</strong><button aria-label="查看指标规则" class="metric-info"><i data-lucide="info"></i></button></div><div class="review-stat"><span id="reviewStatTwoLabel">平均专注</span><strong id="reviewStatTwo">43.5 分钟</strong><button aria-label="查看指标规则" class="metric-info"><i data-lucide="info"></i></button></div><div class="review-stat"><span id="reviewStatThreeLabel">高效时段</span><strong id="reviewStatThree">14:00–16:00</strong><button aria-label="查看指标规则" class="metric-info"><i data-lucide="info"></i></button></div></div></section>
+          <aside class="page-section review-side"><h2 id="categoryTitle">学习方向</h2><p id="categorySubtitle">本周实际投入占比</p><div class="category-chart" id="categoryChart" role="img" aria-label="学习方向投入占比图表"></div><div class="category-list" id="categoryList"></div><button class="button ghost small" id="reviewPlanDetail" style="margin-top:18px"><i data-lucide="folder-kanban"></i>查看 Plan / Stage 进度</button></aside>
+        </div>
       </section>
 
-      <section class="view" id="review">
-        <div class="section-head"><div><h2>学习复盘</h2><p>用完成数据校准下周计划</p></div><select class="btn" aria-label="统计周期"><option>本周</option><option>近 30 天</option></select></div>
-        <div class="metrics"><article class="metric"><div class="metric-head"><span>总专注</span><span class="metric-icon"><i data-lucide="clock-3"></i></span></div><strong>13.5 h</strong><small>较上周增加 2.1 小时</small></article><article class="metric"><div class="metric-head"><span>任务完成率</span><span class="metric-icon"><i data-lucide="badge-check"></i></span></div><strong>81%</strong><small>完成 17 / 21 项</small></article><article class="metric"><div class="metric-head"><span>最佳时段</span><span class="metric-icon"><i data-lucide="sunrise"></i></span></div><strong>09:00</strong><small>平均专注 46 分钟</small></article></div>
-        <div class="review-grid"><section class="panel"><div class="panel-head"><h2>分类投入</h2><span class="muted">13.5 小时</span></div><div class="bar-list"><div><div class="bar-label"><span>鸿蒙开发</span><strong>6.2h</strong></div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div></div><div><div class="bar-label"><span>项目实战</span><strong>4.5h</strong></div><div class="bar-track"><div class="bar-fill" style="width:57%;background:var(--blue)"></div></div></div><div><div class="bar-label"><span>面试准备</span><strong>2.8h</strong></div><div class="bar-track"><div class="bar-fill" style="width:35%;background:var(--yellow)"></div></div></div></div></section><section class="panel"><div class="panel-head"><h2>近四周专注</h2><span class="muted">颜色越深时长越高</span></div><div class="heatmap" aria-label="学习热力图"><span class="day l1"></span><span class="day l2"></span><span class="day"></span><span class="day l3"></span><span class="day l2"></span><span class="day l1"></span><span class="day"></span><span class="day l2"></span><span class="day l3"></span><span class="day l1"></span><span class="day l2"></span><span class="day"></span><span class="day l3"></span><span class="day l1"></span><span class="day l3"></span><span class="day l2"></span><span class="day l2"></span><span class="day"></span><span class="day l1"></span><span class="day l3"></span><span class="day l2"></span><span class="day l3"></span><span class="day l1"></span><span class="day l2"></span><span class="day l3"></span><span class="day l2"></span><span class="day l1"></span><span class="day"></span></div></section></div>
+      <section class="view" id="view-settings">
+        <section class="page-section settings-layout">
+          <nav class="settings-nav" aria-label="设置分类"><button class="active" data-setting="profile">个人资料</button><button data-setting="preferences">通用设置</button><button data-setting="directions">学习方向</button><button data-setting="security">账号与安全</button><button data-setting="devices">登录设备</button><button data-setting="data">数据与存储</button><button data-setting="legal">关于与法律</button></nav>
+          <div class="settings-panel" id="settingsProfile">
+            <h2 class="desktop-only-copy">我的</h2><p class="desktop-only-copy">个人资料和账号设置会同步到所有设备。</p>
+            <div class="profile-summary"><div class="profile-avatar" id="profileAvatar">HY</div><div><h3 id="profileDisplayName">火焰</h3><p>@huoyanbo · 已加入 108 天</p></div><button class="button small" id="changeAvatarButton"><i data-lucide="image-up"></i>更换头像</button><input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+            <section class="setting-group desktop-only-copy" style="margin-top:22px"><h3>个人资料</h3><div class="setting-row"><div class="setting-copy"><strong>显示名称</strong><span>只用于“我的”和用户设置界面展示。</span></div><div class="setting-control"><input id="displayNameInput" value="火焰" maxlength="20" aria-label="显示名称"></div></div><div class="setting-row"><div class="setting-copy"><strong>登录用户名</strong><span>huoyanbo · 用于登录，全局唯一。</span></div><button class="button small" data-open-setting="security">安全修改</button></div></section>
+            <div class="mobile-only-copy"><button class="settings-menu-row" data-open-setting="preferences"><i data-lucide="sliders-horizontal"></i><span><strong>通用设置</strong><span>计划结束时间、默认时长和休息建议</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-open-setting="directions"><i data-lucide="tags"></i><span><strong>学习方向</strong><span>分类、颜色、排序和归档</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-open-setting="security"><i data-lucide="shield-check"></i><span><strong>账号与安全</strong><span>用户名、密码和恢复码</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-open-setting="devices"><i data-lucide="monitor-smartphone"></i><span><strong>登录设备</strong><span>3 / 10 台设备正在使用</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-open-setting="data"><i data-lucide="database"></i><span><strong>数据与存储</strong><span>缓存、导出和设备名称</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-open-setting="legal"><i data-lucide="scroll-text"></i><span><strong>关于与法律</strong><span>协议、隐私、权限和版本</span></span><i class="chevron" data-lucide="chevron-right"></i></button></div>
+          </div>
+          <div class="settings-panel" id="settingsPreferences" hidden>
+            <h2>通用设置</h2><p>这些账号级设置会实时同步到所有设备。</p>
+            <section class="setting-group"><h3>计划偏好</h3><div class="setting-row"><div class="setting-copy"><strong>每日计划结束时间</strong><span>默认 22:00；调整后如影响已有任务，会先显示预览。</span></div><div class="setting-control"><input type="time" id="dailyEndTime" value="22:00" aria-label="每日计划结束时间"></div></div><div class="setting-row"><div class="setting-copy"><strong>默认任务专注时长</strong><span>新建任务时默认使用，可在任务中修改。</span></div><div class="setting-control"><input type="number" min="1" value="50" aria-label="默认任务专注时长"></div></div></section>
+            <section class="setting-group"><h3>休息建议</h3><div class="setting-row"><div class="setting-copy"><strong>显示休息建议</strong><span>只显示轻量提示，不启动强制休息计时。</span></div><label class="switch"><input type="checkbox" checked aria-label="显示休息建议"><span></span></label></div><div class="setting-row"><div class="setting-copy"><strong>连续专注触发阈值</strong><span>达到该时长后显示建议。</span></div><div class="setting-control"><input type="number" min="1" value="40" aria-label="连续专注触发阈值"></div></div><div class="setting-row"><div class="setting-copy"><strong>建议休息时长</strong><span>只用于提示文案。</span></div><div class="setting-control"><input type="number" min="1" value="10" aria-label="建议休息时长"></div></div></section>
+          </div>
+          <div class="settings-panel" id="settingsDirections" hidden><h2>学习方向</h2><p>用于跨 Plan 分类和复盘统计。历史任务使用过的方向只能归档。</p><div class="direction-list"><div class="direction-item"><i class="direction-swatch"></i><strong>理论学习</strong><button class="button ghost small">编辑</button></div><div class="direction-item"><i class="direction-swatch" style="background:var(--blue)"></i><strong>实践训练</strong><button class="button ghost small">编辑</button></div><div class="direction-item"><i class="direction-swatch" style="background:var(--amber)"></i><strong>阅读整理</strong><button class="button ghost small">编辑</button></div><div class="direction-item"><i class="direction-swatch" style="background:var(--green)"></i><strong>复习巩固</strong><button class="button ghost small">编辑</button></div><div class="direction-item"><i class="direction-swatch" style="background:#82948e"></i><strong>其他</strong><button class="button ghost small">编辑</button></div></div><button class="button primary small" style="margin-top:12px" id="addDirectionButton"><i data-lucide="plus"></i>新建学习方向</button></div>
+          <div class="settings-panel" id="settingsSecurity" hidden><h2>账号与安全</h2><p>高风险操作需要当前密码和图形验证码。</p><div class="setting-row"><div class="setting-copy"><strong>登录用户名</strong><span>huoyanbo · 修改后使用新用户名登录。</span></div><button class="button small" id="changeUsernameButton">修改</button></div><div class="setting-row"><div class="setting-copy"><strong>登录密码</strong><span>修改成功后保留当前设备，退出其他设备。</span></div><button class="button small" id="changePasswordButton">修改</button></div><div class="setting-row"><div class="setting-copy"><strong>恢复码</strong><span>剩余 6 个；重新生成会立即作废旧恢复码。</span></div><button class="button small" id="regenerateCodesButton">重新生成</button></div><div class="setting-row"><div class="setting-copy"><strong>退出当前账号</strong><span>本机未同步数据会先进入同步队列。</span></div><button class="button small" id="logoutButton">退出</button></div><div class="setting-row"><div class="setting-copy"><strong>注销账号</strong><span>永久删除全部数据和设备会话，不可恢复。</span></div><button class="button danger small" id="deleteAccountButton">注销账号</button></div></div>
+          <div class="settings-panel" id="settingsDevices" hidden><h2>登录设备</h2><p>当前账号已登录 3 / 10 台设备。</p><div class="setting-row"><div class="setting-copy"><strong>当前设备 · Web 浏览器</strong><span>macOS · 刚刚活跃</span></div><span class="tag blue">当前设备</span></div><div class="setting-row"><div class="setting-copy"><strong>HarmonyOS 手机</strong><span>HarmonyOS · 2 小时前活跃</span></div><button class="button small remote-logout">远程退出</button></div><div class="setting-row"><div class="setting-copy"><strong>工作平板</strong><span>HarmonyOS · 昨天活跃</span></div><button class="button small remote-logout">远程退出</button></div></div>
+          <div class="settings-panel" id="settingsData" hidden><h2>数据与存储</h2><p>账号数据会同步；缓存和设备名称只影响本机。</p><div class="setting-row"><div class="setting-copy"><strong>导出个人数据</strong><span>导出 Plan、Task、专注记录和账号资料。</span></div><button class="button small" id="exportDataButton">申请导出</button></div><div class="setting-row"><div class="setting-copy"><strong>本地缓存</strong><span>当前占用 18.6 MB，清理不会删除云端数据。</span></div><button class="button small" id="clearCacheButton">清理</button></div><div class="setting-row"><div class="setting-copy"><strong>设备名称</strong><span>Web 浏览器</span></div><button class="button small" id="renameDeviceButton">修改</button></div></div>
+          <div class="settings-panel" id="settingsLegal" hidden><h2>关于与法律</h2><p>时序 Focus Plan · 概念版本 0.2.0</p><div class="legal-list"><button class="settings-menu-row" data-legal="terms"><i data-lucide="file-text"></i><span><strong>用户协议</strong><span>账号、服务规则与责任边界</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-legal="privacy"><i data-lucide="shield"></i><span><strong>隐私政策</strong><span>收集、使用、保存和用户权利</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-legal="collection"><i data-lucide="list-checks"></i><span><strong>个人信息收集清单</strong><span>逐项说明数据、目的和保存方式</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-legal="permissions"><i data-lucide="key-round"></i><span><strong>权限与第三方 SDK</strong><span>调用时机、用途和当前接入情况</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-legal="minor"><i data-lucide="user-check"></i><span><strong>未成年人保护说明</strong><span>首期仅面向年满 14 周岁的用户</span></span><i class="chevron" data-lucide="chevron-right"></i></button><button class="settings-menu-row" data-legal="cancellation"><i data-lucide="user-x"></i><span><strong>账号注销说明</strong><span>验证条件、删除范围和处理结果</span></span><i class="chevron" data-lucide="chevron-right"></i></button></div></div>
+        </section>
       </section>
     </main>
   </div>
 
-  <nav class="mobile-nav" aria-label="移动端导航"><button class="active" data-view-target="today"><i data-lucide="sun"></i><span>今日</span></button><button data-view-target="plan"><i data-lucide="calendar-range"></i><span>计划</span></button><button data-view-target="focus"><i data-lucide="timer"></i><span>专注</span></button><button data-view-target="review"><i data-lucide="chart-column"></i><span>复盘</span></button></nav>
-  <dialog id="taskDialog"><form method="dialog" id="taskForm"><div class="dialog-head"><h2>添加学习任务</h2><button class="btn icon-btn" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="dialog-body"><div class="form-grid"><div class="field full"><label for="taskName">任务名称</label><input id="taskName" required placeholder="例如：完成 ArkUI 列表练习"></div><div class="field"><label for="taskType">分类</label><select id="taskType"><option>鸿蒙开发</option><option>项目实战</option><option>技术阅读</option><option>求职准备</option></select></div><div class="field"><label for="taskDuration">预计时长</label><select id="taskDuration"><option value="25">25 分钟</option><option value="40">40 分钟</option><option value="50">50 分钟</option><option value="90">90 分钟</option></select></div><div class="field"><label for="taskTime">开始时间</label><input id="taskTime" type="time" value="16:00"></div><div class="field"><label for="taskDate">执行日期</label><input id="taskDate" type="date" value="2026-07-22"></div></div></div><div class="dialog-actions"><button class="btn" value="cancel">取消</button><button class="btn primary" id="saveTask" value="default">保存任务</button></div></form></dialog>
+  <nav class="mobile-nav" aria-label="移动端导航">
+    <button class="active" data-view="today"><i data-lucide="sun"></i><span>今日</span></button>
+    <button data-view="plan"><i data-lucide="calendar-range"></i><span>计划</span></button>
+    <button data-view="focus"><i data-lucide="timer-reset"></i><span>专注</span></button>
+    <button data-view="review"><i data-lucide="chart-no-axes-combined"></i><span>复盘</span></button>
+    <button data-view="settings"><i data-lucide="user-round"></i><span>我的</span></button>
+  </nav>
+
+  <dialog id="taskDialog">
+    <form method="dialog" id="taskForm">
+      <div class="dialog-head"><h2>新建学习任务</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="dialog-body">
+        <div class="field full"><label for="taskName">任务名称</label><input id="taskName" required placeholder="例如：整理本章核心概念"></div>
+        <div class="field"><label for="taskPlan">Plan（选填）</label><select id="taskPlan"><option value="career">职业能力提升计划</option><option value="reading">阅读与表达计划</option><option value="">独立任务</option></select><button class="button ghost small inline-action" type="button" id="inlineAddPlan"><i data-lucide="plus"></i>新建 Plan</button></div>
+        <div class="field"><label for="taskStage">Stage（选填）</label><select id="taskStage"><option>实践训练</option><option>基础学习</option><option value="">不关联 Stage</option></select><span class="field-hint">Stage 会随 Plan 联动</span></div>
+        <div class="field"><label for="taskCategory">学习方向</label><select id="taskCategory" required><option>理论学习</option><option>实践训练</option><option>阅读整理</option><option>复习巩固</option><option>测试评估</option><option selected>其他</option></select><button class="button ghost small inline-action" type="button" id="inlineAddDirection"><i data-lucide="plus"></i>新建学习方向</button></div>
+        <div class="field"><label for="taskDuration">预计专注时长</label><select id="taskDuration"><option value="25">25 分钟</option><option value="40">40 分钟</option><option value="50" selected>50 分钟</option><option value="90">90 分钟</option><option value="custom">自定义</option></select><input id="taskCustomDuration" type="number" min="1" step="1" value="60" aria-label="自定义预计专注分钟数" hidden><span class="field-hint">必填正整数分钟</span></div>
+        <div class="field"><label for="taskDate">执行日期</label><input id="taskDate" type="date" required></div>
+        <div class="field"><label for="taskTime">预计开始时间</label><input id="taskTime" type="time" value="16:00" required></div>
+        <div class="field full"><label>预计时间区间</label><div class="end-preview" id="taskEndPreview">16:00–16:50 · 50 分钟</div></div>
+      </div>
+      <div class="dialog-actions"><button class="button" value="cancel">取消</button><button class="button primary" id="saveTask" value="default">保存任务</button></div>
+    </form>
+  </dialog>
+  <dialog id="planDialog">
+    <form method="dialog" id="planForm">
+      <div class="dialog-head"><h2>新建 Plan</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="dialog-body">
+        <div class="field full"><label for="planName">Plan 标题</label><input id="planName" required placeholder="例如：阅读与表达提升计划"></div>
+        <div class="field full"><label for="planDescription">目标描述（选填）</label><input id="planDescription" placeholder="描述完成标准和最终结果"></div>
+        <div class="field"><label for="planStart">开始日期</label><input id="planStart" type="date" required></div>
+        <div class="field"><label for="planEnd">目标完成日期</label><input id="planEnd" type="date" required></div>
+        <div class="field"><label for="planHours">计划投入 · 小时（选填）</label><input id="planHours" type="number" min="0" value="12"></div>
+        <div class="field"><label for="planMinutes">计划投入 · 分钟</label><input id="planMinutes" type="number" min="0" max="59" value="30"></div>
+        <div class="field full"><div class="end-preview" id="planTotalPreview">合计 12.5 小时</div></div>
+      </div>
+      <div class="dialog-actions"><button class="button" value="cancel">取消</button><button class="button primary" id="savePlan" value="default">创建 Plan</button></div>
+    </form>
+  </dialog>
+  <dialog id="focusCompleteDialog">
+    <form method="dialog">
+      <div class="dialog-head"><h2>结束当前专注</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="dialog-stack"><div class="impact-summary"><strong>完成实践练习</strong><br>本轮已投入 <span id="completeActual">0 分钟</span>，完成任务会同时结束本次专注。</div><button class="choice-card" id="confirmCompleteTask" value="default"><strong>完成任务</strong><span>结束当前专注，并把任务标记为已完成</span></button><button class="choice-card" id="continueTaskButton" type="button"><strong>任务还没完成</strong><span>继续同一任务并增加本次倒计时</span></button></div>
+      <div class="extend-panel" id="extendPanel"><div class="duration-options"><button type="button" data-extend="25">25</button><button type="button" data-extend="40">40</button><button type="button" data-extend="50">50</button><button type="button" data-extend="90">90</button></div><div class="custom-duration-field show"><input id="extendMinutes" type="number" min="1" value="25" aria-label="增加倒计时分钟数"><span>分钟</span></div><div class="dialog-actions" style="padding-inline:0;border:0"><button class="button primary" id="showImpactButton" type="button">延长并查看调整</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="impactDialog">
+    <form method="dialog">
+      <div class="dialog-head"><h2>确认排期调整</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="dialog-stack"><div class="impact-summary">增加 <strong id="impactMinutes">25 分钟</strong> 后，2 个未开始任务将顺延；最晚结束时间变为 21:40，仍在每日结束时间 22:00 前。</div><div class="impact-list"><div class="impact-row"><div><strong>阅读专题材料</strong><span>原时间 14:00–14:40</span></div><time>14:25–15:05</time></div><div class="impact-row"><div><strong>复盘本周错题</strong><span>原时间 20:00–20:30</span></div><time>20:25–20:55</time></div></div></div>
+      <div class="dialog-actions"><button class="button" value="cancel">返回调整</button><button class="button primary" id="confirmImpact" value="default">确认并更新 2 个任务</button></div>
+    </form>
+  </dialog>
+  <dialog id="manualCompleteDialog">
+    <form method="dialog">
+      <div class="dialog-head"><h2>完成未开始的任务</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="dialog-copy">这个任务还没有专注记录，请选择是否补录实际投入。</div><div class="dialog-stack"><button class="choice-card" value="default" data-manual="zero"><strong>完成，不计入投入</strong><span>任务会完成，实际投入保持 0 分钟</span></button><button class="choice-card" type="button" id="manualInputButton"><strong>输入实际投入</strong><span>生成一条手动补录的专注片段</span></button><div class="custom-duration-field" id="manualDurationField"><input id="manualMinutes" type="number" min="1" value="25" aria-label="手动补录分钟数"><span>分钟</span><button class="button primary small" value="default" data-manual="minutes">补录并完成</button></div></div><div class="dialog-actions"><button class="button" value="cancel">取消</button></div>
+    </form>
+  </dialog>
+  <dialog id="focusMenuDialog">
+    <form method="dialog"><div class="dialog-head"><h2>更多专注操作</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="plan-action-list"><button class="button ghost" type="button" id="extendNow"><i data-lucide="timer-reset"></i>延长当前任务</button><button class="button ghost text-danger" type="button" id="abandonTask"><i data-lucide="circle-x"></i>放弃任务</button></div></form>
+  </dialog>
+  <dialog id="planSelectorDialog"><form method="dialog"><div class="dialog-head"><h2>选择 Plan / Stage</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div><div class="dialog-stack"><button class="choice-card" value="default"><strong>职业能力提升计划</strong><span>全部阶段 · 当前选择</span></button><button class="choice-card" value="default"><strong>阅读与表达计划</strong><span>2 个阶段 · 5 项任务</span></button><button class="choice-card" value="default"><strong>独立任务</strong><span>不属于任何 Plan</span></button></div></form></dialog>
+  <dialog id="planActionDialog">
+    <form method="dialog">
+      <div class="dialog-head"><h2 id="planActionTitle">调整任务</h2><button class="button ghost icon" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <div class="plan-action-list">
+        <button class="button ghost" value="start" data-plan-action="start"><i data-lucide="play"></i>开始任务</button>
+        <button class="button ghost" value="edit" data-plan-action="edit"><i data-lucide="pencil"></i>编辑任务</button>
+        <button class="button ghost" value="earlier" data-plan-action="earlier"><i data-lucide="arrow-up"></i>提前顺序</button>
+        <button class="button ghost" value="later" data-plan-action="later"><i data-lucide="arrow-down"></i>延后顺序</button>
+        <button class="button ghost" value="tomorrow" data-plan-action="tomorrow"><i data-lucide="calendar-clock"></i>顺延到明天</button>
+        <button class="button ghost" value="cancel-task" data-plan-action="cancel-task"><i data-lucide="circle-slash"></i>取消任务</button>
+        <button class="button ghost text-danger" value="delete" data-plan-action="delete"><i data-lucide="trash-2"></i>永久删除</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="legalDialog">
+    <div class="dialog-head"><h2 id="legalTitle">用户协议</h2><button class="button ghost icon" id="closeLegalDialog" type="button" aria-label="关闭"><i data-lucide="x"></i></button></div>
+    <article class="legal-copy" id="legalContent"></article>
+    <div class="dialog-actions"><button class="button primary" id="confirmLegalDialog" type="button">我知道了</button></div>
+  </dialog>
   <div class="toast" id="toast" role="status">操作已完成</div>
 
-  <script>
-    (function () {
-      var titles = { today: ['今日学习', '7月22日 周三 · 保持节奏，完成 4 个学习块'], plan: ['学习计划', '把目标拆成每周可执行的学习块'], focus: ['专注模式', '聚焦一个任务，按节奏完成学习'], review: ['学习复盘', '查看投入、完成率和高效时段'] };
-      var secondsLeft = 25 * 60, defaultMinutes = 25, timerId = null;
-      var navButtons = document.querySelectorAll('[data-view-target]'), views = document.querySelectorAll('.view'), toast = document.getElementById('toast');
-      function icons() { if (window.lucide) window.lucide.createIcons({ attrs: { width: 18, height: 18, 'stroke-width': 1.8 } }); }
-      function showToast(message) { toast.textContent = message; toast.classList.add('show'); window.setTimeout(function () { toast.classList.remove('show'); }, 1700); }
-      function setView(id) { views.forEach(function (v) { v.classList.toggle('active', v.id === id); }); navButtons.forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-view-target') === id); }); document.getElementById('pageTitle').textContent = titles[id][0]; document.getElementById('pageSubtitle').textContent = titles[id][1]; window.scrollTo({ top: 0, behavior: 'smooth' }); }
-      navButtons.forEach(function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view-target')); }); });
-      document.getElementById('quickFocus').addEventListener('click', function () { setView('focus'); });
-      document.querySelectorAll('.date-btn').forEach(function (b) { b.addEventListener('click', function () { document.querySelectorAll('.date-btn').forEach(function (d) { d.classList.remove('active'); }); b.classList.add('active'); showToast('已切换到 ' + b.textContent.trim()); }); });
-      function updateProgress() { var tasks = document.querySelectorAll('#taskList .task'), done = document.querySelectorAll('#taskList .task.done').length; document.getElementById('progressText').textContent = done + ' / ' + tasks.length; }
-      function bindChecks() { document.querySelectorAll('#taskList input[type="checkbox"]').forEach(function (box) { box.onchange = function () { box.closest('.task').classList.toggle('done', box.checked); updateProgress(); showToast(box.checked ? '任务已完成' : '任务已恢复'); }; }); }
-      bindChecks();
-      document.getElementById('openTask').addEventListener('click', function () { document.getElementById('taskDialog').showModal(); });
-      document.getElementById('saveTask').addEventListener('click', function (event) { event.preventDefault(); var name = document.getElementById('taskName').value.trim(); if (!name) { document.getElementById('taskName').focus(); return; } var time = document.getElementById('taskTime').value, duration = document.getElementById('taskDuration').value, type = document.getElementById('taskType').value; var task = document.createElement('div'); task.className = 'task'; task.draggable = true; task.innerHTML = '<input type="checkbox" aria-label="完成任务"><div><div class="task-title"></div><div class="task-meta"><span>' + time + '</span><span>' + duration + ' 分钟</span></div></div><span class="tag">' + type + '</span><button class="drag" aria-label="拖动排序"><i data-lucide="grip-vertical"></i></button>'; task.querySelector('.task-title').textContent = name; document.getElementById('taskList').appendChild(task); document.getElementById('taskForm').reset(); document.getElementById('taskDialog').close(); bindChecks(); bindDrag(task); updateProgress(); icons(); showToast('学习任务已添加'); });
-      function renderTimer() { var min = String(Math.floor(secondsLeft / 60)).padStart(2, '0'), sec = String(secondsLeft % 60).padStart(2, '0'); document.querySelectorAll('.timerValue').forEach(function (v) { v.textContent = min + ':' + sec; }); }
-      function setTimerRunning(running) { document.querySelectorAll('.toggleTimer').forEach(function (b) { b.innerHTML = running ? '<i data-lucide="pause"></i><span>暂停</span>' : '<i data-lucide="play"></i><span>开始专注</span>'; }); icons(); }
-      function toggleTimer() { if (timerId) { clearInterval(timerId); timerId = null; setTimerRunning(false); return; } timerId = window.setInterval(function () { secondsLeft -= 1; renderTimer(); if (secondsLeft <= 0) { clearInterval(timerId); timerId = null; secondsLeft = defaultMinutes * 60; renderTimer(); setTimerRunning(false); showToast('本轮已完成，休息一下'); } }, 1000); setTimerRunning(true); }
-      document.querySelectorAll('.toggleTimer').forEach(function (b) { b.addEventListener('click', toggleTimer); });
-      document.querySelectorAll('.resetTimer').forEach(function (b) { b.addEventListener('click', function () { if (timerId) clearInterval(timerId); timerId = null; secondsLeft = defaultMinutes * 60; renderTimer(); setTimerRunning(false); showToast('计时器已重置'); }); });
-      document.querySelectorAll('#modeSegment button').forEach(function (b) { b.addEventListener('click', function () { document.querySelectorAll('#modeSegment button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); defaultMinutes = Number(b.getAttribute('data-minutes')); secondsLeft = defaultMinutes * 60; if (timerId) clearInterval(timerId); timerId = null; renderTimer(); setTimerRunning(false); }); });
-      document.getElementById('skipTimer').addEventListener('click', function () { defaultMinutes = 5; secondsLeft = 5 * 60; if (timerId) clearInterval(timerId); timerId = null; renderTimer(); setTimerRunning(false); showToast('已进入短休息'); });
-      document.querySelectorAll('.segment').forEach(function (s) { if (s.id === 'modeSegment') return; s.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { s.querySelectorAll('button').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); showToast('计划视图已切换'); }); }); });
-      var dragged = null;
-      function bindDrag(task) { task.addEventListener('dragstart', function () { dragged = task; task.classList.add('dragging'); }); task.addEventListener('dragend', function () { task.classList.remove('dragging'); dragged = null; showToast('任务顺序已更新'); }); task.addEventListener('dragover', function (event) { event.preventDefault(); if (dragged && dragged !== task) { var box = task.getBoundingClientRect(); document.getElementById('taskList').insertBefore(dragged, event.clientY < box.top + box.height / 2 ? task : task.nextSibling); } }); }
-      document.querySelectorAll('#taskList .task').forEach(bindDrag); updateProgress(); renderTimer(); icons();
-    }());
-  </script>
+  <script src="focus-plan.js"></script>
 </body>
 </html>
