@@ -30,6 +30,7 @@
 - Lucide React 图标
 - 响应式布局，覆盖桌面和移动端
 - 使用真实产品原型截图展示项目界面
+- 参考 React Bits 的 Scroll Stack、Scroll Reveal 和 Glare/Tilt 交互模式，并提供移动端与减少动态效果降级
 
 ### 演示 API
 
