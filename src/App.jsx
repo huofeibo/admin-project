@@ -110,8 +110,12 @@ function Portfolio() {
                   <div className="case-links"><ArrowLink href="/wuji">打开产品主页</ArrowLink><ArrowLink href="https://github.com/huofeibo/asset-keeper" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
                 </div>
                 <TiltSurface className="case-visual wuji-visual">
-                  <img className="desktop-capture" src="/assets/wuji-business-desktop.png" alt="物迹商户版 Web 管理端" />
-                  <img className="phone-capture" src="/assets/wuji-family-mobile.png" alt="物迹家庭版 HarmonyOS 原型" />
+                  <div className="device-plane device-plane-web">
+                    <img className="desktop-capture" src="/assets/wuji-business-desktop.png" alt="物迹商户版 Web 管理端" />
+                  </div>
+                  <div className="device-plane device-plane-phone">
+                    <img className="phone-capture" src="/assets/wuji-family-mobile.png" alt="物迹家庭版 HarmonyOS 原型" />
+                  </div>
                   <span className="visual-note note-top">MERCHANT / WEB</span><span className="visual-note note-bottom">FAMILY / HARMONYOS</span>
                 </TiltSurface>
               </div>
@@ -128,8 +132,12 @@ function Portfolio() {
                   <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看 UI 概念图</ArrowLink><ArrowLink href="https://github.com/huofeibo/focus-plan" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
                 </div>
                 <TiltSurface className="case-visual shixu-visual">
-                  <img className="desktop-capture" src={focusPlanDesktopImage} alt="时序 Web 学习工作台" />
-                  <img className="phone-capture" src={focusPlanMobileImage} alt="时序 HarmonyOS 移动端原型" />
+                  <div className="device-plane device-plane-web">
+                    <img className="desktop-capture" src={focusPlanDesktopImage} alt="时序 Web 学习工作台" />
+                  </div>
+                  <div className="device-plane device-plane-phone">
+                    <img className="phone-capture" src={focusPlanMobileImage} alt="时序 HarmonyOS 移动端原型" />
+                  </div>
                   <span className="visual-note note-top">PLAN / WEB</span><span className="visual-note note-bottom">FOCUS / HARMONYOS</span>
                 </TiltSurface>
               </div>
