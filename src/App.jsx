@@ -7,6 +7,8 @@ import {
   Smartphone, Sparkles, Store, Timer, Trash2, Wrench, X
 } from 'lucide-react';
 import { Reveal, ScrollStack, SplitTitle, SpotlightSurface, TiltSurface } from './PortfolioMotion.jsx';
+import focusPlanDesktopImage from './assets/focus-plan-concept-desktop.png';
+import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
 const API_BASE = (import.meta.env.VITE_DEMO_API_BASE_URL || '').replace(/\/+$/, '');
 const FOCUS_PLAN_URL = (import.meta.env.VITE_FOCUS_PLAN_URL || '').trim() || '/demos/focus-plan.html';
@@ -126,8 +128,8 @@ function Portfolio() {
                   <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看 UI 概念图</ArrowLink><ArrowLink href="https://github.com/huofeibo/focus-plan" target="_blank" rel="noreferrer">查看仓库</ArrowLink></div>
                 </div>
                 <TiltSurface className="case-visual shixu-visual">
-                  <img className="desktop-capture" src="/assets/shixu-desktop.png" alt="时序 Web 学习工作台" />
-                  <img className="phone-capture" src="/assets/shixu-mobile.png" alt="时序 HarmonyOS 移动端原型" />
+                  <img className="desktop-capture" src={focusPlanDesktopImage} alt="时序 Web 学习工作台" />
+                  <img className="phone-capture" src={focusPlanMobileImage} alt="时序 HarmonyOS 移动端原型" />
                   <span className="visual-note note-top">PLAN / WEB</span><span className="visual-note note-bottom">FOCUS / HARMONYOS</span>
                 </TiltSurface>
               </div>
