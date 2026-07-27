@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity, AlertTriangle, ArrowLeft, ArrowRight, BarChart3, Bell, Box,
   BriefcaseBusiness, CalendarClock, Check, ChevronRight, CircleUserRound,
@@ -6,10 +6,11 @@ import {
   Layers3, Menu, PackagePlus, Plus, QrCode, Search, Server, ShieldCheck,
   Smartphone, Sparkles, Store, Timer, Trash2, Wrench, X
 } from 'lucide-react';
-import { Reveal, ScrollStack, SplitTitle, SpotlightSurface } from './PortfolioMotion.jsx';
+import { Reveal, ScrollStack, SplitTitle } from './PortfolioMotion.jsx';
 import focusPlanDesktopImage from './assets/focus-plan-concept-desktop.png';
 import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
+const HeroScene = lazy(() => import('./HeroScene.jsx'));
 const API_BASE = (import.meta.env.VITE_DEMO_API_BASE_URL || '').replace(/\/+$/, '');
 const FOCUS_PLAN_URL = (import.meta.env.VITE_FOCUS_PLAN_URL || '').trim() || '/demos/focus-plan.html';
 
@@ -92,14 +93,12 @@ function Portfolio() {
       </header>
 
       <main>
-        <SpotlightSurface className="portfolio-hero">
-          <div className="hero-media-field" aria-label="项目界面预览">
-            <img className="hero-backdrop hero-backdrop-muted" src="/assets/wuji-business-desktop.png" alt="" aria-hidden="true" />
-            <div className="hero-backdrop-color" aria-hidden="true">
-              <img className="hero-backdrop" src="/assets/wuji-business-desktop.png" alt="" />
-            </div>
-            <div className="hero-media-label" aria-hidden="true"><span>LIVE PRODUCT SURFACE</span><b>ASSET KEEPER / WEB</b></div>
-          </div>
+        <section className="portfolio-hero">
+          <Suspense fallback={<div className="hero-scene hero-scene-loading" aria-hidden="true"><img className="hero-scene-fallback" src="/assets/wuji-business-desktop.png" alt="" /></div>}>
+            <HeroScene />
+          </Suspense>
+          <div className="hero-stage-word" aria-hidden="true">SYSTEMS</div>
+          <div className="hero-media-label" aria-hidden="true"><span>SELECTED PRODUCT SURFACES</span><b>WEB · HARMONYOS · CLOUD</b></div>
           <div className="hero-copy">
             <p className="hero-kicker"><span />PERSONAL PRODUCT LAB · BEIJING</p>
             <h1><SplitTitle text="霍延波" /></h1>
@@ -120,7 +119,7 @@ function Portfolio() {
           <a className="hero-scroll-cue" href="#projects">
             <span>SCROLL TO EXPLORE</span><i aria-hidden="true" />
           </a>
-        </SpotlightSurface>
+        </section>
 
         <section className="project-section" id="projects">
           <Reveal className="section-intro project-intro"><p className="eyebrow">SELECTED SYSTEMS / 01-02</p><h2>不是概念包装，<br />是持续推进的产品现场。</h2><p>每个项目都保留问题定义、交互取舍、代码边界和真实开发状态。</p></Reveal>
