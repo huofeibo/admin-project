@@ -1,13 +1,12 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import focusPlanDesktopImage from './assets/focus-plan-concept-desktop.png';
 import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
 const projectItems = [
-  { src: '/assets/wuji-business-desktop.png', label: 'WUJI / MERCHANT', project: true },
+  { src: '/assets/wuji-project-cover.svg', label: 'WUJI / ASSET KEEPER', project: true },
   { src: '/assets/wuji-business-mobile.png', label: 'WUJI / ADMIN', project: true },
   { src: '/assets/wuji-family-mobile.png', label: 'WUJI / FAMILY', project: true },
-  { src: focusPlanDesktopImage, label: 'FOCUS PLAN / WEB', project: true },
+  { src: '/assets/focus-plan-project-cover.svg', label: 'FOCUS PLAN / PROJECT', project: true },
   { src: focusPlanMobileImage, label: 'FOCUS PLAN / APP', project: true },
   { src: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=900&q=82', label: 'INTERFACE / STUDY' },
   { src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=82', label: 'WORKSPACE / CLOUD' },
@@ -300,7 +299,7 @@ export default function HeroScene() {
 
   return (
     <div className="hero-scene" ref={mountRef} aria-hidden="true">
-      <img className="hero-scene-fallback" src="/assets/wuji-business-desktop.png" alt="" />
+      <img className="hero-scene-fallback" src="/assets/wuji-project-cover.svg" alt="" />
       <span className="hero-scene-axis hero-scene-axis-x" />
       <span className="hero-scene-axis hero-scene-axis-y" />
     </div>

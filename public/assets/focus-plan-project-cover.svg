@@ -1,0 +1,73 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="82" y1="80" x2="1514" y2="860" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172A42"/>
+      <stop offset="1" stop-color="#263852"/>
+    </linearGradient>
+    <linearGradient id="lime" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#D9F58C"/>
+      <stop offset="1" stop-color="#76D8BB"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="1040" y1="124" x2="1450" y2="764" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FBF8"/>
+      <stop offset="1" stop-color="#E9F1ED"/>
+    </linearGradient>
+    <filter id="shadow" x="882" y="72" width="608" height="790" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="26" flood-color="#08121F" flood-opacity="0.45"/>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" stroke="#B8D6D2" stroke-opacity="0.09"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" rx="34" fill="url(#bg)"/>
+  <rect width="1600" height="900" rx="34" fill="url(#grid)"/>
+  <path d="M82 672C296 588 456 758 668 664C792 609 865 493 1031 493" stroke="#98D9B7" stroke-opacity="0.29" stroke-width="2"/>
+  <circle cx="109" cy="111" r="30" stroke="#A9E6C4" stroke-opacity="0.6" stroke-width="2"/>
+  <path d="M98 111H120M109 100V122" stroke="#A9E6C4" stroke-width="3" stroke-linecap="round"/>
+  <text x="170" y="119" fill="#B8E8C8" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="4">FOCUS PLAN / 02</text>
+  <text x="108" y="355" fill="#F4F8F4" font-family="Arial, 'PingFang SC', sans-serif" font-size="112" font-weight="800" letter-spacing="6">时序</text>
+  <text x="112" y="414" fill="#C4D4D7" font-family="Arial, 'PingFang SC', sans-serif" font-size="30" font-weight="600" letter-spacing="3">计划编排 · 专注执行 · 周期复盘</text>
+  <rect x="112" y="482" width="280" height="2" fill="#A9E6C4"/>
+  <text x="112" y="532" fill="#A9BFC5" font-family="Arial, 'PingFang SC', sans-serif" font-size="22">把阶段目标，变成今天真正能开始的时间。</text>
+  <g opacity="0.9">
+    <rect x="110" y="668" width="190" height="78" rx="12" fill="#29415A" stroke="#506A7B"/>
+    <text x="136" y="700" fill="#A9C5C8" font-family="Arial, sans-serif" font-size="13" letter-spacing="2">SURFACES</text>
+    <text x="136" y="730" fill="#CDEB93" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0">WEB · HARMONYOS</text>
+    <rect x="320" y="668" width="190" height="78" rx="12" fill="#29415A" stroke="#506A7B"/>
+    <text x="346" y="700" fill="#A9C5C8" font-family="Arial, sans-serif" font-size="13" letter-spacing="2">RHYTHM</text>
+    <text x="346" y="730" fill="#CDEB93" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="0">PLAN / FOCUS / REVIEW</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="930" y="104" width="490" height="690" rx="24" fill="url(#screen)"/>
+    <rect x="930" y="104" width="490" height="72" rx="24" fill="#FCFEFC"/>
+    <circle cx="976" cy="140" r="10" fill="#79CBAA"/>
+    <text x="1002" y="147" fill="#1D3344" font-family="Arial, 'PingFang SC', sans-serif" font-size="22" font-weight="700">今日计划</text>
+    <text x="1264" y="146" fill="#7D8F95" font-family="Arial, sans-serif" font-size="14">周三 · 06.18</text>
+    <rect x="975" y="216" width="400" height="154" rx="18" fill="#1C344B"/>
+    <text x="1004" y="253" fill="#9DB4BA" font-family="Arial, 'PingFang SC', sans-serif" font-size="14">当前专注</text>
+    <text x="1002" y="330" fill="#F3F8F1" font-family="Arial, sans-serif" font-size="66" font-weight="800" letter-spacing="3">25:00</text>
+    <rect x="1214" y="250" width="124" height="34" rx="17" fill="#34526B"/>
+    <circle cx="1236" cy="267" r="6" fill="#CDEB93"/>
+    <text x="1248" y="272" fill="#DDECCB" font-family="Arial, sans-serif" font-size="12" font-weight="700">进行中</text>
+    <text x="1004" y="354" fill="#9DB4BA" font-family="Arial, 'PingFang SC', sans-serif" font-size="13">英语阅读 · 深度工作</text>
+    <text x="976" y="424" fill="#657A82" font-family="Arial, 'PingFang SC', sans-serif" font-size="15">学习流</text>
+    <rect x="976" y="451" width="398" height="60" rx="12" fill="#EDF5EF"/>
+    <rect x="976" y="451" width="7" height="60" rx="3.5" fill="#7ECBA9"/>
+    <text x="1002" y="478" fill="#1D394A" font-family="Arial, 'PingFang SC', sans-serif" font-size="16" font-weight="700">算法与数据结构</text>
+    <text x="1002" y="499" fill="#75878A" font-family="Arial, sans-serif" font-size="12">09:30 — 10:10</text>
+    <circle cx="1336" cy="481" r="17" fill="#D8F1DB"/>
+    <path d="M1328 481L1335 488L1346 475" stroke="#4C9E79" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="976" y="529" width="398" height="60" rx="12" fill="#F6F8F7"/>
+    <rect x="976" y="529" width="7" height="60" rx="3.5" fill="#B6C7D2"/>
+    <text x="1002" y="556" fill="#1D394A" font-family="Arial, 'PingFang SC', sans-serif" font-size="16" font-weight="700">项目复盘</text>
+    <text x="1002" y="577" fill="#75878A" font-family="Arial, sans-serif" font-size="12">14:00 — 14:30</text>
+    <circle cx="1336" cy="559" r="17" fill="#E5ECEF"/>
+    <path d="M1328 559H1344" stroke="#78909A" stroke-width="3" stroke-linecap="round"/>
+    <text x="976" y="651" fill="#657A82" font-family="Arial, 'PingFang SC', sans-serif" font-size="15">本周进度</text>
+    <rect x="976" y="675" width="398" height="12" rx="6" fill="#DCE7E3"/>
+    <rect x="976" y="675" width="264" height="12" rx="6" fill="url(#lime)"/>
+    <text x="1258" y="687" fill="#4D776D" font-family="Arial, sans-serif" font-size="13" font-weight="700">66%</text>
+    <text x="976" y="744" fill="#A0B2B0" font-family="Arial, sans-serif" font-size="12" letter-spacing="2">PLAN · EXECUTE · REFLECT</text>
+  </g>
+  <text x="1426" y="844" text-anchor="end" fill="#879DA3" font-family="Arial, sans-serif" font-size="14" letter-spacing="3">HUOYANBO PRODUCT LAB</text>
+</svg>

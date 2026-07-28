@@ -7,7 +7,6 @@ import {
   Smartphone, Sparkles, Store, Timer, Trash2, Wrench, X
 } from 'lucide-react';
 import { Reveal, ScrollStack, SplitTitle } from './PortfolioMotion.jsx';
-import focusPlanDesktopImage from './assets/focus-plan-concept-desktop.png';
 import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
 const HeroScene = lazy(() => import('./HeroScene.jsx'));
@@ -137,9 +136,9 @@ function Portfolio() {
                 </div>
                 <DeviceShowcase
                   className="wuji-visual"
-                  desktopSrc="/assets/wuji-business-desktop.png"
-                  desktopAlt="物迹商户版 Web 管理端"
-                  desktopLabel="MERCHANT / WEB"
+                  desktopSrc="/assets/wuji-project-cover.svg"
+                  desktopAlt="物迹项目封面：家庭资产、门店设备与云端协同"
+                  desktopLabel="ASSET KEEPER / COVER"
                   phoneSrc="/assets/wuji-family-mobile.png"
                   phoneAlt="物迹家庭版 HarmonyOS 原型"
                   phoneLabel="FAMILY / HARMONYOS"
@@ -159,9 +158,9 @@ function Portfolio() {
                 </div>
                 <DeviceShowcase
                   className="shixu-visual"
-                  desktopSrc={focusPlanDesktopImage}
-                  desktopAlt="时序 Web 学习工作台"
-                  desktopLabel="PLAN / WEB"
+                  desktopSrc="/assets/focus-plan-project-cover.svg"
+                  desktopAlt="时序项目封面：计划编排、专注执行与周期复盘"
+                  desktopLabel="FOCUS PLAN / COVER"
                   phoneSrc={focusPlanMobileImage}
                   phoneAlt="时序 HarmonyOS 移动端原型"
                   phoneLabel="FOCUS / HARMONYOS"
