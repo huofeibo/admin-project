@@ -12,7 +12,7 @@ import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
 const HeroScene = lazy(() => import('./HeroScene.jsx'));
 const API_BASE = (import.meta.env.VITE_DEMO_API_BASE_URL || '').replace(/\/+$/, '');
-const FOCUS_PLAN_URL = (import.meta.env.VITE_FOCUS_PLAN_URL || '').trim() || '/demos/focus-plan.html';
+const FOCUS_PLAN_URL = (import.meta.env.VITE_FOCUS_PLAN_URL || '').trim() || 'https://sx.huoyb-api.cloud';
 
 const familySeed = [
   { id: 'WF-24018', name: '海尔双门冰箱', room: '厨房', category: '大家电', warranty: '2027.03.12', state: '正常' },
