@@ -1,16 +1,12 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
 const projectItems = [
   { src: '/assets/wuji-project-cover.svg', label: 'WUJI / ASSET KEEPER', project: true },
-  { src: '/assets/wuji-business-mobile.png', label: 'WUJI / ADMIN', project: true },
-  { src: '/assets/wuji-family-mobile.png', label: 'WUJI / FAMILY', project: true },
   { src: '/assets/focus-plan-project-cover.svg', label: 'FOCUS PLAN / PROJECT', project: true },
-  { src: focusPlanMobileImage, label: 'FOCUS PLAN / APP', project: true },
-  { src: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=900&q=82', label: 'INTERFACE / STUDY' },
-  { src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=82', label: 'WORKSPACE / CLOUD' },
-  { src: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=82', label: 'SYSTEM / PRODUCT' }
+  { src: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=900&q=82', label: 'REFERENCE / INTERFACE' },
+  { src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=82', label: 'REFERENCE / WORKSPACE' },
+  { src: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=82', label: 'REFERENCE / SYSTEM' }
 ];
 
 const accentColors = [0xd7ad59, 0x7fd1d5, 0xd994b2, 0xb6c877, 0x9da9e8];
