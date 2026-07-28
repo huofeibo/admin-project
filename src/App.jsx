@@ -133,7 +133,7 @@ function Portfolio() {
                   <h3>让家庭物品与门店设备，都拥有可追溯的生命周期。</h3>
                   <p>家庭版聚焦档案、保修与提醒；商户版连接多门店台账、巡检和维修工单。两种产品形态共享资产模型与云端能力。</p>
                   <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web Admin</span><span><Cloud size={17} />Cloud API</span></div>
-                  <div className="case-links"><ArrowLink href="/wuji">打开产品主页</ArrowLink></div>
+                  <div className="case-links"><ArrowLink href="/wuji">查看项目</ArrowLink></div>
                 </div>
                 <DeviceShowcase
                   className="wuji-visual"
@@ -155,7 +155,7 @@ function Portfolio() {
                   <h3>把阶段目标，变成今天真正能够开始的一段时间。</h3>
                   <p>将计划编排、任务执行、专注计时和周期复盘连接起来。Web 负责大屏规划，HarmonyOS 负责随时执行与多设备适配。</p>
                   <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web App</span><span><Cloud size={17} />Cloud API</span></div>
-                  <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看 UI 概念图</ArrowLink></div>
+                  <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看项目</ArrowLink></div>
                 </div>
                 <DeviceShowcase
                   className="shixu-visual"
