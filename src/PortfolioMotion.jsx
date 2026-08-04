@@ -45,6 +45,29 @@ export function SplitTitle({ text }) {
   );
 }
 
+export function BlurText({ children, className = '', delay = 0 }) {
+  return (
+    <span
+      className={`rb-blur-text ${className}`.trim()}
+      style={{ '--blur-delay': `${delay}ms` }}
+    >
+      {children}
+    </span>
+  );
+}
+
+export function KineticText({ text, className = '' }) {
+  return (
+    <span className={`rb-kinetic-text ${className}`.trim()} aria-label={text}>
+      {Array.from(text).map((character, index) => (
+        <span key={`${character}-${index}`} aria-hidden="true" className="rb-kinetic-letter" style={{ '--letter-index': index }}>
+          {character === ' ' ? '\u00a0' : character}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function SpotlightSurface({ children, className = '' }) {
   const ref = useRef(null);
 

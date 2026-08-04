@@ -2,113 +2,110 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 const projectItems = [
-  { src: '/assets/wuji-project-cover.svg', label: 'WUJI / ASSET KEEPER', project: true },
-  { src: '/assets/focus-plan-project-cover.svg', label: 'FOCUS PLAN / PROJECT', project: true },
-  { src: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=900&q=82', label: 'REFERENCE / INTERFACE' },
-  { src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=82', label: 'REFERENCE / WORKSPACE' },
-  { src: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=82', label: 'REFERENCE / SYSTEM' }
+  { src: '/assets/wuji-project-cover.svg', accent: 0x2457ff },
+  { src: '/assets/focus-plan-project-cover.svg', accent: 0x2457ff }
 ];
 
-const accentColors = [0xd7ad59, 0x7fd1d5, 0xd994b2, 0xb6c877, 0x9da9e8];
-
-function shuffle(items) {
-  const copy = [...items];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
-  }
-  return copy;
-}
-
 function createCoverTexture(texture, anisotropy) {
-  if (!texture?.image) return undefined;
+  if (!texture?.image) return texture;
+  const width = 1200;
+  const height = 760;
   const canvas = document.createElement('canvas');
-  canvas.width = 720;
-  canvas.height = 500;
+  canvas.width = width;
+  canvas.height = height;
   const context = canvas.getContext('2d');
   const image = texture.image;
-  const scale = Math.max(canvas.width / image.width, canvas.height / image.height);
-  const width = image.width * scale;
-  const height = image.height * scale;
-  context.fillStyle = '#0b0e0d';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
-  context.strokeStyle = 'rgba(235, 241, 237, .34)';
-  context.lineWidth = 3;
-  context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
-  const coverTexture = new THREE.CanvasTexture(canvas);
-  coverTexture.colorSpace = THREE.SRGBColorSpace;
-  coverTexture.anisotropy = anisotropy;
+  const imageWidth = image.naturalWidth || image.width || width;
+  const imageHeight = image.naturalHeight || image.height || height;
+  const scale = Math.max(width / imageWidth, height / imageHeight);
+  const drawWidth = imageWidth * scale;
+  const drawHeight = imageHeight * scale;
+  context.fillStyle = '#eef2f7';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+  const cover = new THREE.CanvasTexture(canvas);
+  cover.colorSpace = THREE.SRGBColorSpace;
+  cover.anisotropy = anisotropy;
+  cover.needsUpdate = true;
   texture.dispose();
-  return coverTexture;
+  return cover;
 }
 
-function createCard(item, texture, index, compact, anisotropy) {
-  const width = compact ? 0.92 : 1.16;
-  const height = width / 1.44;
-  const geometry = new THREE.PlaneGeometry(width, height);
-  const fallback = new THREE.MeshBasicMaterial({ color: accentColors[index % accentColors.length], transparent: true, opacity: 0.84 });
-  const material = texture
-    ? new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 1 })
-    : fallback;
-  if (texture) {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = anisotropy;
-  }
-  const card = new THREE.Mesh(geometry, material);
-  const edge = new THREE.LineSegments(
-    new THREE.EdgesGeometry(geometry),
-    new THREE.LineBasicMaterial({ color: 0xe7eeea, transparent: true, opacity: 0.4 })
+function createCard(item, index, texture) {
+  const group = new THREE.Group();
+  const geometry = new THREE.PlaneGeometry(3.18, 2.02);
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: texture ? 0xffffff : 0xdfe7f3,
+    transparent: true,
+    opacity: 1,
+    toneMapped: false
+  });
+  const cover = new THREE.Mesh(geometry, material);
+  cover.position.z = 0.04;
+  group.add(cover);
+
+  const backing = new THREE.Mesh(
+    new THREE.BoxGeometry(3.3, 2.14, 0.12),
+    new THREE.MeshBasicMaterial({ color: 0xf8fbff, transparent: true, opacity: 0.96 })
   );
-  card.add(edge);
-  card.userData = { index, item, opacity: texture ? 1 : 0.7, baseY: (index % 3 - 1) * (compact ? 0.06 : 0.1) };
-  return card;
+  backing.position.z = -0.06;
+  group.add(backing);
+
+  const border = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(3.34, 2.18, 0.15)),
+    new THREE.LineBasicMaterial({ color: item.accent, transparent: true, opacity: 0.58 })
+  );
+  border.position.z = -0.04;
+  group.add(border);
+
+  const signal = new THREE.Mesh(
+    new THREE.BoxGeometry(0.035, 2.2, 0.18),
+    new THREE.MeshBasicMaterial({ color: item.accent, transparent: true, opacity: 0.9 })
+  );
+  signal.position.set(-1.69, 0, 0);
+  group.add(signal);
+
+  group.userData = { index, material, border, signal, baseY: index === 0 ? 0.02 : -0.02 };
+  return group;
 }
 
-function disposeCard(card) {
-  card.geometry?.dispose();
-  const materials = Array.isArray(card.material) ? card.material : [card.material];
-  materials.forEach((material) => {
-    material?.map?.dispose();
-    material?.dispose();
-  });
-  card.children.forEach((child) => {
+function createArcGuide(compact) {
+  const points = [];
+  const width = compact ? 4.4 : 7.6;
+  for (let index = 0; index <= 70; index += 1) {
+    const progress = index / 70;
+    const x = (progress - 0.5) * width;
+    const z = -Math.abs(progress - 0.5) * 1.45;
+    const y = Math.sin(progress * Math.PI) * 0.13 - 1.5;
+    points.push(new THREE.Vector3(x, y, z));
+  }
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0x2457ff, transparent: true, opacity: 0.16 });
+  return new THREE.Line(geometry, material);
+}
+
+function disposeObject(object) {
+  object.traverse((child) => {
     child.geometry?.dispose();
-    child.material?.dispose();
+    if (Array.isArray(child.material)) child.material.forEach(material => material.dispose());
+    else child.material?.dispose();
   });
 }
 
-function createTunnelGuide(compact) {
-  const guide = new THREE.Group();
-  const grid = new THREE.GridHelper(compact ? 6 : 7.2, compact ? 8 : 10, 0xd8b260, 0x3f5043);
-  grid.rotation.x = Math.PI / 2;
-  grid.position.z = -1.18;
-  grid.scale.x = compact ? 0.62 : 0.78;
-  grid.material.transparent = true;
-  grid.material.opacity = 0.16;
-  guide.add(grid);
-
-  const railGeometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(compact ? -1.25 : -1.72, -3.2, -0.9),
-    new THREE.Vector3(compact ? -1.25 : -1.72, 3.2, -0.9),
-    new THREE.Vector3(compact ? 1.25 : 1.72, -3.2, -0.9),
-    new THREE.Vector3(compact ? 1.25 : 1.72, 3.2, -0.9)
-  ]);
-  guide.add(new THREE.LineSegments(
-    railGeometry,
-    new THREE.LineBasicMaterial({ color: 0xd8b260, transparent: true, opacity: 0.26 })
-  ));
-  return guide;
-}
-
-export default function HeroScene() {
+export default function HeroScene({ activeIndex = 0, onActiveChange }) {
   const mountRef = useRef(null);
+  const activeRef = useRef(activeIndex);
+  const onActiveChangeRef = useRef(onActiveChange);
+
+  useEffect(() => { activeRef.current = activeIndex; }, [activeIndex]);
+  useEffect(() => { onActiveChangeRef.current = onActiveChange; }, [onActiveChange]);
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return undefined;
 
-    const compact = window.matchMedia('(max-width: 680px)').matches;
+    const compact = window.matchMedia('(max-width: 760px)').matches;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let renderer;
     try {
@@ -120,58 +117,53 @@ export default function HeroScene() {
 
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compact ? 1.35 : 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compact ? 1.25 : 1.7));
     renderer.domElement.className = 'hero-scene-canvas';
-    renderer.domElement.setAttribute('aria-label', compact ? '项目截图横向信号带' : '项目截图信号隧道');
+    renderer.domElement.setAttribute('aria-hidden', 'true');
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(0, 0, 8.4);
-    const cluster = new THREE.Group();
-    cluster.position.set(compact ? 0.25 : 1.62, compact ? -1.05 : 0.02, 0);
-    cluster.scale.setScalar(compact ? 0.82 : 1);
-    scene.add(cluster);
-    const tunnelGuide = createTunnelGuide(compact);
-    cluster.add(tunnelGuide);
+    const camera = new THREE.PerspectiveCamera(compact ? 48 : 42, 1, 0.1, 100);
+    camera.position.set(0, 0, compact ? 7.8 : 7.1);
 
-    const orderedItems = shuffle(projectItems);
+    const stage = new THREE.Group();
+    stage.position.set(compact ? 0 : 1.72, compact ? -1.02 : -0.02, 0);
+    stage.scale.setScalar(compact ? 0.76 : 1);
+    scene.add(stage);
+
+    const guide = createArcGuide(compact);
+    stage.add(guide);
+
     const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin('anonymous');
     const anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
     const cards = [];
-    const loadedTextures = [];
+    const textures = [];
     let disposed = false;
 
-    function addCard(item, index, texture) {
-      if (disposed) {
-        texture?.dispose();
-        return;
-      }
-      const card = createCard(item, texture, index, compact, anisotropy);
-      cards[index] = card;
-      cluster.add(card);
-    }
-
-    orderedItems.forEach((item, index) => {
+    projectItems.forEach((item, index) => {
       loader.load(item.src, (texture) => {
+        if (disposed) { texture.dispose(); return; }
         const coverTexture = createCoverTexture(texture, anisotropy);
-        loadedTextures.push(coverTexture);
-        addCard(item, index, coverTexture);
-      }, undefined, () => addCard(item, index));
+        textures.push(coverTexture);
+        const card = createCard(item, index, coverTexture);
+        cards[index] = card;
+        stage.add(card);
+      }, undefined, () => {
+        if (disposed) return;
+        const card = createCard(item, index);
+        cards[index] = card;
+        stage.add(card);
+      });
     });
 
     const pointer = new THREE.Vector2();
     const pointerTarget = new THREE.Vector2();
-    let tunnelOffset = 0;
-    let tunnelTarget = 0;
-    let dragging = false;
-    let lastPointerX = 0;
-    let lastPointerY = 0;
-    let scrollTarget = 0;
-    let frame = 0;
-    let visible = true;
     const clock = new THREE.Clock();
+    let dragging = false;
+    let dragStartX = 0;
+    let dragTriggered = false;
+    let visible = true;
+    let frame = 0;
 
     function resize() {
       const width = Math.max(mount.clientWidth, 1);
@@ -179,96 +171,92 @@ export default function HeroScene() {
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.render(scene, camera);
     }
 
-    function pointerMove(event) {
-      pointerTarget.x = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
-      pointerTarget.y = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
-      if (dragging) {
-        tunnelTarget += (compact ? event.clientX - lastPointerX : event.clientY - lastPointerY) * 0.012;
-        lastPointerX = event.clientX;
-        lastPointerY = event.clientY;
+    function handlePointerMove(event) {
+      const bounds = renderer.domElement.getBoundingClientRect();
+      pointerTarget.x = ((event.clientX - bounds.left) / Math.max(bounds.width, 1) - 0.5) * 2;
+      pointerTarget.y = ((event.clientY - bounds.top) / Math.max(bounds.height, 1) - 0.5) * 2;
+      if (!dragging || dragTriggered) return;
+      const delta = event.clientX - dragStartX;
+      if (Math.abs(delta) > 46) {
+        const next = activeRef.current === 0 ? 1 : 0;
+        activeRef.current = next;
+        dragTriggered = true;
+        onActiveChangeRef.current?.(next);
       }
     }
 
-    function pointerDown(event) {
+    function handlePointerDown(event) {
       dragging = true;
-      lastPointerX = event.clientX;
-      lastPointerY = event.clientY;
+      dragTriggered = false;
+      dragStartX = event.clientX;
       renderer.domElement.setPointerCapture?.(event.pointerId);
     }
 
-    function pointerUp(event) {
+    function handlePointerUp(event) {
       dragging = false;
       renderer.domElement.releasePointerCapture?.(event.pointerId);
-    }
-
-    function handleScroll() {
-      scrollTarget = Math.min(window.scrollY / Math.max(window.innerHeight, 1), 1);
     }
 
     function renderFrame() {
       frame = 0;
       if (!visible) return;
       const elapsed = clock.getElapsedTime();
-      mount.dataset.sceneStage = 'tunnel';
-      pointer.lerp(pointerTarget, 0.045);
-      tunnelOffset += (tunnelTarget - tunnelOffset) * 0.08;
-      cluster.rotation.x += ((-pointer.y * 0.06) - cluster.rotation.x) * 0.035;
-      cluster.rotation.y += ((pointer.x * 0.1) - cluster.rotation.y) * 0.035;
-      cluster.position.y = (compact ? -1.05 : 0.02) + scrollTarget * 0.7;
+      pointer.lerp(pointerTarget, reducedMotion ? 1 : 0.055);
 
-      const spacing = compact ? 0.94 : 1.04;
-      const total = orderedItems.length * spacing;
-      const autoScroll = reducedMotion ? 0 : elapsed * (compact ? 0.34 : 0.42);
+      const active = activeRef.current;
       cards.filter(Boolean).forEach((card, index) => {
-        const rawY = index * spacing + autoScroll + tunnelOffset;
-        const offset = ((rawY + total / 2) % total + total) % total - total / 2;
-        const focus = Math.max(0, 1 - Math.abs(offset) / (total * 0.38));
-        const depth = Math.max(0, Math.min(1, focus));
-        const x = compact ? offset : Math.sin(index * 1.8 + elapsed * 0.18) * 0.14;
-        const y = compact ? card.userData.baseY : offset;
-        card.position.set(
-          x,
-          y,
-          depth * 2.5 - 1.12
-        );
-        card.rotation.set(compact ? 0 : y * -0.035, compact ? x * -0.035 : Math.sin(index * 1.2) * 0.06, compact ? x * 0.018 : x * 0.05);
-        card.scale.setScalar(0.5 + depth * 0.56);
-        card.renderOrder = Math.round(depth * 100);
-        if (card.material) {
-          card.material.opacity = (0.16 + depth * 0.84) * card.userData.opacity;
-        }
-      if (card.children[0]?.material) {
-        card.children[0].material.opacity = 0.12 + depth * 0.5;
-        card.children[0].material.color.set(depth > 0.62 ? 0x82f0f3 : 0x60747d);
-      }
+        const selected = index === active;
+        const side = selected ? 0 : active === 0 ? 1 : -1;
+        const targetX = side * (compact ? 4.15 : 3.5);
+        const targetY = card.userData.baseY + (selected ? 0 : 0.22);
+        const targetZ = selected ? 0.72 : -1.35;
+        const targetScale = selected ? 1 : compact ? 0.76 : 0.72;
+        const targetRotationY = selected ? pointer.x * 0.035 : side * -0.48;
+        const targetRotationX = selected ? pointer.y * -0.025 : 0.03;
+        const easing = reducedMotion ? 1 : 0.075;
+
+        card.position.x += (targetX - card.position.x) * easing;
+        card.position.y += (targetY - card.position.y) * easing;
+        card.position.z += (targetZ - card.position.z) * easing;
+        card.rotation.y += (targetRotationY - card.rotation.y) * easing;
+        card.rotation.x += (targetRotationX - card.rotation.x) * easing;
+        card.rotation.z += ((side * 0.035) - card.rotation.z) * easing;
+        const breath = reducedMotion || !selected ? 0 : Math.sin(elapsed * 1.15) * 0.008;
+        const scale = targetScale + breath;
+        card.scale.x += (scale - card.scale.x) * easing;
+        card.scale.y += (scale - card.scale.y) * easing;
+        card.scale.z += (scale - card.scale.z) * easing;
+        card.userData.material.opacity += ((selected ? 1 : compact ? 0.16 : 0.48) - card.userData.material.opacity) * easing;
+        card.userData.border.material.opacity += ((selected ? 0.72 : compact ? 0.08 : 0.2) - card.userData.border.material.opacity) * easing;
+        card.userData.signal.material.opacity += ((selected ? 0.94 : compact ? 0.12 : 0.26) - card.userData.signal.material.opacity) * easing;
+        card.renderOrder = selected ? 10 : 1;
       });
 
+      stage.position.y = compact ? -1.02 : -0.02;
+      stage.position.z = 0;
+      guide.material.opacity = 0.16;
+      camera.position.x += (((reducedMotion ? 0 : pointer.x) * 0.1) - camera.position.x) * 0.04;
+      camera.position.y += (((reducedMotion ? 0 : -pointer.y) * 0.07) - camera.position.y) * 0.04;
       renderer.render(scene, camera);
-      if (!reducedMotion) frame = window.requestAnimationFrame(renderFrame);
+      frame = window.requestAnimationFrame(renderFrame);
     }
 
     const resizeObserver = new ResizeObserver(resize);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      if (visible && !frame && !reducedMotion) renderFrame();
-      if (!visible && frame) {
-        window.cancelAnimationFrame(frame);
-        frame = 0;
-      }
+      if (visible && !frame) renderFrame();
+      else if (!visible && frame) { window.cancelAnimationFrame(frame); frame = 0; }
     }, { threshold: 0.01 });
 
     resizeObserver.observe(mount);
     visibilityObserver.observe(mount);
-    window.addEventListener('pointermove', pointerMove, { passive: true });
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    renderer.domElement.addEventListener('pointerdown', pointerDown);
-    renderer.domElement.addEventListener('pointerup', pointerUp);
-    renderer.domElement.addEventListener('pointercancel', pointerUp);
+    renderer.domElement.addEventListener('pointermove', handlePointerMove, { passive: true });
+    renderer.domElement.addEventListener('pointerdown', handlePointerDown);
+    renderer.domElement.addEventListener('pointerup', handlePointerUp);
+    renderer.domElement.addEventListener('pointercancel', handlePointerUp);
     resize();
-    handleScroll();
     renderFrame();
     mount.dataset.sceneStatus = 'ready';
 
@@ -277,17 +265,13 @@ export default function HeroScene() {
       if (frame) window.cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       visibilityObserver.disconnect();
-      window.removeEventListener('pointermove', pointerMove);
-      window.removeEventListener('scroll', handleScroll);
-      renderer.domElement.removeEventListener('pointerdown', pointerDown);
-      renderer.domElement.removeEventListener('pointerup', pointerUp);
-      renderer.domElement.removeEventListener('pointercancel', pointerUp);
-      cards.filter(Boolean).forEach(disposeCard);
-      tunnelGuide.traverse((object) => {
-        object.geometry?.dispose();
-        object.material?.dispose();
-      });
-      loadedTextures.forEach((texture) => texture?.dispose());
+      renderer.domElement.removeEventListener('pointermove', handlePointerMove);
+      renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
+      renderer.domElement.removeEventListener('pointerup', handlePointerUp);
+      renderer.domElement.removeEventListener('pointercancel', handlePointerUp);
+      cards.filter(Boolean).forEach(disposeObject);
+      disposeObject(guide);
+      textures.forEach(texture => texture?.dispose());
       renderer.dispose();
       renderer.domElement.remove();
     };

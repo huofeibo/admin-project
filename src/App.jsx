@@ -6,7 +6,7 @@ import {
   Layers3, Menu, PackagePlus, Plus, QrCode, Search, Server, ShieldCheck,
   Smartphone, Sparkles, Store, Timer, Trash2, Wrench, X
 } from 'lucide-react';
-import { Reveal, ScrollStack, SplitTitle } from './PortfolioMotion.jsx';
+import { BlurText, KineticText, Reveal, ScrollStack, SplitTitle } from './PortfolioMotion.jsx';
 import focusPlanMobileImage from './assets/focus-plan-concept-mobile.png';
 
 const HeroScene = lazy(() => import('./HeroScene.jsx'));
@@ -22,9 +22,9 @@ const familySeed = [
 
 function Brand({ compact = false }) {
   return (
-    <a className={`brand ${compact ? 'brand-compact' : ''}`} href="/" aria-label="霍延波个人项目首页">
-      <span className="brand-symbol">HY</span>
-      <span><strong>霍延波</strong><small>Frontend & HarmonyOS</small></span>
+    <a className={`brand ${compact ? 'brand-compact' : ''}`} href="/" aria-label="Huoyb 个人项目首页">
+      <span className="brand-symbol">HYB</span>
+      <span><strong>Huoyb</strong><small>全栈与 HarmonyOS</small></span>
     </a>
   );
 }
@@ -62,7 +62,45 @@ function DeviceShowcase({ className, desktopSrc, desktopAlt, desktopLabel, phone
 
 function Portfolio() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeProject, setActiveProject] = useState(0);
   const progressRef = useRef(null);
+
+  const projects = [
+    {
+      number: '01',
+      name: '物迹',
+      english: 'Asset Keeper',
+      category: '资产管理',
+      summary: '家庭资产与门店设备管理',
+      role: '产品设计 / 全栈开发 / HarmonyOS',
+      stack: 'React / ArkTS / Node.js',
+      year: '2026',
+      href: '/wuji',
+      cover: '/assets/wuji-project-cover.svg',
+      mobile: '/assets/wuji-family-mobile.png',
+      mobileAlt: '物迹家庭版 HarmonyOS 原型',
+      coverAlt: '物迹项目封面：家庭资产、门店设备与云端协同',
+      visualClass: 'wuji-visual'
+    },
+    {
+      number: '02',
+      name: '时序',
+      english: 'Focus Plan',
+      category: '专注计划',
+      summary: '学习计划、专注执行与周期复盘',
+      role: '产品设计 / 全栈开发 / HarmonyOS',
+      stack: 'React / ArkTS / WebSocket',
+      year: '2026',
+      href: FOCUS_PLAN_URL,
+      cover: '/assets/focus-plan-project-cover.svg',
+      mobile: focusPlanMobileImage,
+      mobileAlt: '时序 HarmonyOS 移动端原型',
+      coverAlt: '时序项目封面：计划编排、专注执行与周期复盘',
+      visualClass: 'shixu-visual'
+    }
+  ];
+
+  const currentProject = projects[activeProject];
 
   useEffect(() => {
     function updateProgress() {
@@ -85,121 +123,72 @@ function Portfolio() {
       <header className="site-header">
         <Brand />
         <nav className={menuOpen ? 'site-nav open' : 'site-nav'} aria-label="主导航">
-          <a href="#projects" onClick={() => setMenuOpen(false)}>项目</a><a href="#capabilities" onClick={() => setMenuOpen(false)}>能力</a><a href="#architecture" onClick={() => setMenuOpen(false)}>架构</a>
-          <a className="nav-cta" href="#projects" onClick={() => setMenuOpen(false)}>浏览项目<ArrowRight size={15} /></a>
+          <a href="#projects" onClick={() => setMenuOpen(false)}>项目</a>
+          <a href="#about" onClick={() => setMenuOpen(false)}>关于</a>
+          <a href="https://github.com/huofeibo" target="_blank" rel="noreferrer">GitHub</a>
         </nav>
         <button className="icon-button menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? '关闭导航' : '展开导航'}>{menuOpen ? <X size={21} /> : <Menu size={21} />}</button>
       </header>
 
       <main>
         <section className="portfolio-hero">
+          <div className="hero-light-rays" aria-hidden="true"><i /><i /><i /></div>
           <Suspense fallback={<div className="hero-scene hero-scene-loading" aria-hidden="true"><img className="hero-scene-fallback" src="/assets/wuji-business-desktop.png" alt="" /></div>}>
-            <HeroScene />
+            <HeroScene activeIndex={activeProject} onActiveChange={setActiveProject} />
           </Suspense>
-          <div className="hero-stage-word" aria-hidden="true">SYSTEMS</div>
-          <div className="hero-media-label" aria-hidden="true"><span>SELECTED PRODUCT SURFACES</span><b>WEB · HARMONYOS · CLOUD</b></div>
           <div className="hero-copy">
-            <p className="hero-kicker"><span />PERSONAL PRODUCT LAB · BEIJING</p>
-            <h1><SplitTitle text="霍延波" /></h1>
-            <p className="hero-role">Frontend & HarmonyOS Developer</p>
-            <p className="hero-lede">把真实问题做成可以运行、验证和持续迭代的多端产品。</p>
-            <div className="hero-actions">
-              <a className="button hero-primary" href="#projects">进入项目档案<ArrowRight size={18} /></a>
-              <a className="button hero-secondary" href="#architecture">查看实现路径<Layers3 size={18} /></a>
+            <h1><SplitTitle text="Huoyb" /></h1>
+            <p className="hero-role"><BlurText delay={180}>全栈与 HarmonyOS 开发者</BlurText></p>
+            <div className="hero-active-project" aria-live="polite">
+              <span>{currentProject.number}</span>
+              <div><strong>{currentProject.name}</strong><small>{currentProject.summary}</small></div>
             </div>
-            <div className="hero-proof" aria-label="实践范围">
-              <span><strong>02</strong>产品持续开发</span><span><strong>03</strong>Web · HarmonyOS · API</span><span><strong>01</strong>设计到部署</span>
-            </div>
+            <a className="hero-project-link" href={currentProject.href}>查看项目<ArrowRight size={17} /></a>
           </div>
-          <div className="hero-project-rail" aria-label="精选项目">
-            <a href="/wuji"><span>01</span><strong>物迹</strong><small>资产与维保</small></a>
-            <a href={FOCUS_PLAN_URL}><span>02</span><strong>时序</strong><small>计划与专注</small></a>
-          </div>
-          <a className="hero-scroll-cue" href="#projects">
-            <span>SCROLL TO EXPLORE</span><i aria-hidden="true" />
-          </a>
-        </section>
-
-        <section className="project-section" id="projects">
-          <Reveal className="section-intro project-intro"><p className="eyebrow">SELECTED SYSTEMS / 01-02</p><h2>不是概念包装，<br />是持续推进的产品现场。</h2><p>每个项目都保留问题定义、交互取舍、代码边界和真实开发状态。</p></Reveal>
-
-          <ScrollStack className="project-stack">
-            <article className="project-case wuji-case" key="wuji">
-              <div className="case-meta"><span>01 / ASSET KEEPER</span><span className="case-status"><i />规划与交互原型</span></div>
-              <div className="case-body">
-                <div className="project-story">
-                  <span className="project-label">物迹 · 资产与维保</span>
-                  <h3>让家庭物品与门店设备，都拥有可追溯的生命周期。</h3>
-                  <p>家庭版聚焦档案、保修与提醒；商户版连接多门店台账、巡检和维修工单。两种产品形态共享资产模型与云端能力。</p>
-                  <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web Admin</span><span><Cloud size={17} />Cloud API</span></div>
-                  <div className="case-links"><ArrowLink href="/wuji">查看项目</ArrowLink></div>
-                </div>
-                <DeviceShowcase
-                  className="wuji-visual"
-                  desktopSrc="/assets/wuji-project-cover.svg"
-                  desktopAlt="物迹项目封面：家庭资产、门店设备与云端协同"
-                  desktopLabel="ASSET KEEPER / COVER"
-                  phoneSrc="/assets/wuji-family-mobile.png"
-                  phoneAlt="物迹家庭版 HarmonyOS 原型"
-                  phoneLabel="FAMILY / HARMONYOS"
-                />
-              </div>
-            </article>
-
-            <article className="project-case shixu-case" key="shixu">
-              <div className="case-meta"><span>02 / FOCUS PLAN</span><span className="case-status"><i />规划与交互原型</span></div>
-              <div className="case-body">
-                <div className="project-story">
-                  <span className="project-label">时序 · 学习与专注</span>
-                  <h3>把阶段目标，变成今天真正能够开始的一段时间。</h3>
-                  <p>将计划编排、任务执行、专注计时和周期复盘连接起来。Web 负责大屏规划，HarmonyOS 负责随时执行与多设备适配。</p>
-                  <div className="surface-list"><span><Smartphone size={17} />HarmonyOS</span><span><Laptop size={17} />Web App</span><span><Cloud size={17} />Cloud API</span></div>
-                  <div className="case-links"><ArrowLink href={FOCUS_PLAN_URL}>查看项目</ArrowLink></div>
-                </div>
-                <DeviceShowcase
-                  className="shixu-visual"
-                  desktopSrc="/assets/focus-plan-project-cover.svg"
-                  desktopAlt="时序项目封面：计划编排、专注执行与周期复盘"
-                  desktopLabel="FOCUS PLAN / COVER"
-                  phoneSrc={focusPlanMobileImage}
-                  phoneAlt="时序 HarmonyOS 移动端原型"
-                  phoneLabel="FOCUS / HARMONYOS"
-                />
-              </div>
-            </article>
-          </ScrollStack>
-        </section>
-
-        <section className="capability-band" id="capabilities">
-          <Reveal className="section-intro light"><p className="eyebrow">BUILDING RANGE</p><h2>从界面，到系统真正运行的地方。</h2></Reveal>
-          <div className="capability-ledger">
-            {[
-              [Code2, '01', 'Web 前端', '响应式界面、状态管理、设计系统与复杂业务工作台。', 'REACT / TYPESCRIPT'],
-              [Smartphone, '02', 'HarmonyOS', 'ArkUI、多设备适配、端侧数据、扫码与系统通知。', 'ARKTS / ARKUI'],
-              [Server, '03', '服务端接口', 'REST 契约、数据模型、权限边界与可靠状态流转。', 'NODE / POSTGRESQL'],
-              [Sparkles, '04', '产品设计', '从用户问题、信息架构到原型、PRD 与交付验收。', 'DISCOVERY / DELIVERY']
-            ].map(([Icon, number, title, text, stack], index) => (
-              <Reveal className="capability-row" delay={index * 70} key={title}>
-                <span className="capability-number">{number}</span><Icon /><strong>{title}</strong><p>{text}</p><small>{stack}</small><ArrowRight />
-              </Reveal>
+          <div className="hero-project-switcher" aria-label="切换项目">
+            {projects.map((project, index) => (
+              <button key={project.name} className={index === activeProject ? 'active' : ''} onClick={() => setActiveProject(index)} aria-pressed={index === activeProject}>
+                <span>{project.number}</span><strong>{project.name}</strong><small>{project.category}</small>
+              </button>
             ))}
           </div>
         </section>
 
-        <section className="architecture-section" id="architecture">
-          <Reveal className="section-intro"><p className="eyebrow">SYSTEM MAP</p><h2>展示结果，也展示结果背后的连接方式。</h2><p>客户端体验、接口契约、数据和部署都进入同一份项目档案，开发状态保持真实可验证。</p></Reveal>
-          <Reveal className="architecture-map">
-            <div className="arch-column"><span className="arch-kicker">01 / CLIENTS</span><div><Smartphone />HarmonyOS Apps</div><div><Laptop />Web Applications</div></div>
-            <div className="arch-connector"><span /><small>HTTPS</small><span /></div>
-            <div className="arch-core"><span className="arch-kicker">02 / SERVICE</span><Server size={30} /><strong>Node API</strong><small>REST · Auth · Validation</small></div>
-            <div className="arch-connector"><span /><small>EVENTS</small><span /></div>
-            <div className="arch-column"><span className="arch-kicker">03 / DATA</span><div><Database />PostgreSQL</div><div><Bell />Notification</div></div>
+        <section className="project-section" id="projects">
+          <Reveal className="project-intro">
+            <h2 className="project-effect-title" aria-label="项目与界面"><KineticText text="项目与界面" /></h2>
           </Reveal>
-          <div className="architecture-links">{API_BASE && <a href={`${API_BASE}/api/health`} target="_blank" rel="noreferrer">查看 API 健康状态<ExternalLink size={15} /></a>}<a href="/demos/asset-keeper.html">商户端演示<ExternalLink size={15} /></a><a href="/wuji/family-app">家庭端演示<ExternalLink size={15} /></a></div>
+
+          <ScrollStack className="project-stack">
+            {projects.map((project) => (
+              <article className={`project-case project-${project.number}`} key={project.name}>
+                <div className="case-meta"><span>{project.number}</span><span>{project.year}</span></div>
+                <div className="case-body">
+                  <div className="project-story">
+                    <p className="project-category">{project.category}</p>
+                    <h3>{project.name}</h3>
+                    <p className="project-summary">{project.summary}</p>
+                    <dl className="project-facts"><div><dt>负责</dt><dd>{project.role}</dd></div><div><dt>技术</dt><dd>{project.stack}</dd></div></dl>
+                    <ArrowLink href={project.href}>查看项目</ArrowLink>
+                  </div>
+                  <DeviceShowcase className={project.visualClass} desktopSrc={project.cover} desktopAlt={project.coverAlt} desktopLabel={`${project.english.toUpperCase()} / COVER`} phoneSrc={project.mobile} phoneAlt={project.mobileAlt} phoneLabel="HARMONYOS / MOBILE" />
+                </div>
+              </article>
+            ))}
+          </ScrollStack>
+          <Reveal className="portfolio-profile" delay={80}>
+            <h2 className="about-effect-title" id="about" aria-label="全栈开发，也做 HarmonyOS">
+              <KineticText text="全栈开发，" />
+              <KineticText text="也做 HarmonyOS" className="accent" />
+            </h2>
+            <div className="toolbox" aria-label="主要技术方向">
+              <span>React</span><span>ArkTS</span><span>Three.js</span><span>Node.js</span><span>PostgreSQL</span><span>产品设计</span>
+            </div>
+          </Reveal>
         </section>
       </main>
 
-      <footer className="site-footer"><Brand compact /><p>从问题定义，到可以部署的个人产品。</p><a href="https://github.com/huofeibo" target="_blank" rel="noreferrer"><Github size={16} />GitHub</a><span>Beijing · China</span></footer>
+      <footer className="site-footer"><Brand compact /><p>个人作品, 2024-2026</p><a href="https://github.com/huofeibo" target="_blank" rel="noreferrer"><Github size={16} />GitHub</a><span>北京</span></footer>
     </div>
   );
 }

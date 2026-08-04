@@ -1,8 +1,8 @@
-# 霍延波个人项目展示
+# Huoyb 个人作品网站
 
-持续更新的个人项目作品集网站，集中展示前端、HarmonyOS、产品设计与服务端方向的工程实践。当前收录「物迹」和「时序」，后续项目继续接入同一展示入口，不依赖固定项目数量。
+持续更新的个人作品网站，集中展示全栈开发、HarmonyOS、创意交互与产品设计方向的作品。当前收录「物迹」和「时序」，后续项目继续接入同一展示入口，不依赖固定项目数量。
 
-> 当前状态：展示站源码、产品截图、交互原型和演示 API 已迁入本仓库。当前后端使用内存数据，仅用于作品展示和接口契约验证，不是生产服务。
+> 当前状态：展示站源码、项目封面、产品截图、交互原型和演示 API 已迁入本仓库。当前后端使用内存数据，仅用于作品展示和接口契约验证，不是生产服务。
 
 ## 在线内容
 
@@ -14,6 +14,10 @@
 | `/demos/asset-keeper.html` | 物迹商户版 Web/HarmonyOS 响应式原型 |
 | `/demos/focus-plan.html` | 时序最新 Web UI 概念与响应式交互预览 |
 | `http://localhost:8787/api/health` | 仅本地开发使用的演示 API 健康检查 |
+
+## 更新记录
+
+完整变更记录见 [docs/更新记录.md](docs/更新记录.md)。首页现采用亮色动态作品档案：首屏空间画廊负责项目切换，项目区集中展示项目说明与真实界面，其他截图仅在项目卡片和产品详情页中按需展示。
 
 ## 项目仓库
 
@@ -27,10 +31,11 @@
 ### 展示站
 
 - React 19、Vite 6
+- Three.js 空间作品画廊
 - Lucide React 图标
 - 响应式布局，覆盖桌面和移动端
-- 使用真实产品原型截图展示项目界面
-- 参考 React Bits 的 Scroll Stack、Scroll Reveal 和 Glare/Tilt 交互模式，并提供移动端与减少动态效果降级
+- 项目卡片使用统一项目封面，详情页保留真实产品原型截图
+- 参考 React Bits 的 Scroll Stack、Scroll Reveal、拆字与模糊文字动效，并提供移动端、减少动态效果与减少透明度降级
 
 ### 演示 API
 
@@ -115,7 +120,7 @@ docker compose down
 admin-project/
 ├── deploy/             # 容器及宿主机 Nginx 配置
 ├── public/
-│   ├── assets/          # 项目截图
+│   ├── assets/          # 项目封面与产品截图
 │   └── demos/           # 独立交互原型
 ├── services/api/        # 演示后端服务
 ├── scripts/
@@ -137,6 +142,8 @@ project/admin-project/
 ```
 
 ## 生产部署
+
+线上地址：[https://huoyb-api.cloud](https://huoyb-api.cloud)
 
 生产拓扑：
 
@@ -278,6 +285,9 @@ docker logs --tail=100 admin-project-web
 - [x] 提供 GitHub Actions 手动发布流水线和失败回滚
 - [x] 将线上站点从手工静态目录迁移到 Docker 容器
 - [x] 配置 GitHub production 环境、Actions Secrets 和专用部署密钥
+- [x] 统一物迹与时序项目封面，并清理首屏 3D 轨道中的重复截图
+- [x] 重构为亮色动态个人作品档案，统一 Huoyb 对外名称与全栈开发定位
+- [x] 完成桌面、平板、手机布局及减少动态效果降级
 - [ ] 接入各项目正式发布版本
 
 ## 仓库
